@@ -4,9 +4,11 @@ import {
     View,
     Text,
     StyleSheet,
+    TouchableOpacity,
 } from 'react-native';
 import { InputProps } from '../utils/types';
 import { useTheme } from '../context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Input: React.FC<InputProps> = ({
     label,
@@ -18,10 +20,34 @@ const Input: React.FC<InputProps> = ({
     leftIcon,
     rightIcon,
     required = false,
+    secureTextEntry,
     ...textInputProps
 }) => {
     const [isFocused, setIsFocused] = useState(false);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const { colors } = useTheme();
+
+    const togglePasswordVisibility = () => {
+        setIsPasswordVisible(!isPasswordVisible);
+    };
+
+    const renderRightIcon = () => {
+        if (secureTextEntry) {
+            return (
+                <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconRight}>
+                    <Ionicons
+                        name={isPasswordVisible ? 'eye' : 'eye-off'}
+                        size={20}
+                        color={colors.textSecondary}
+                    />
+                </TouchableOpacity>
+            );
+        }
+        if (rightIcon) {
+            return <View style={styles.iconRight}>{rightIcon}</View>;
+        }
+        return null;
+    };
 
     return (
         <View style={[styles.container, containerStyle]}>
@@ -50,16 +76,17 @@ const Input: React.FC<InputProps> = ({
                         styles.input,
                         { color: colors.text },
                         leftIcon ? styles.inputWithLeftIcon : undefined,
-                        rightIcon ? styles.inputWithRightIcon : undefined,
+                        (secureTextEntry || rightIcon) ? styles.inputWithRightIcon : undefined,
                         inputStyle,
                     ]}
                     placeholderTextColor={colors.placeholder}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
+                    secureTextEntry={secureTextEntry && !isPasswordVisible}
                     {...textInputProps}
                 />
 
-                {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
+                {renderRightIcon()}
             </View>
 
             {error && <Text style={[styles.error, { color: colors.error }, errorStyle]}>{error}</Text>}

@@ -11,7 +11,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/navigation';
 import { useTheme } from '../context';
-import { ThemeText, Button, Input } from '../components';
+import { ThemeText, Button, Input, ThemedSafeAreaView } from '../components';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { register, clearError } from '../store/slices/authSlice';
 import { validateForm, registerFields } from '../utils/validators';
@@ -71,55 +71,57 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={[styles.container, { backgroundColor: colors.background }]}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Ionicons name="arrow-back" size={24} color={colors.text} />
-                    </TouchableOpacity>
+        <ThemedSafeAreaView>
+            <KeyboardAvoidingView
+                style={[styles.container, { backgroundColor: colors.background }]}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    <View style={styles.content}>
+                        <TouchableOpacity
+                            style={styles.backButton}
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Ionicons name="arrow-back" size={24} color={colors.text} />
+                        </TouchableOpacity>
 
-                    <ThemeText style={styles.title}>Create Account</ThemeText>
-                    <ThemeText style={[styles.subtitle, { color: colors.textSecondary }]}>Sign up to get started</ThemeText>
+                        <ThemeText style={styles.title}>Create Account</ThemeText>
+                        <ThemeText style={[styles.subtitle, { color: colors.textSecondary }]}>Sign up to get started</ThemeText>
 
-                    <View style={styles.form}>
-                        {registerFields.map((field) => (
-                            <Input
-                                key={field.name}
-                                label={field.label}
-                                placeholder={field.placeholder}
-                                value={formValues[field.name]}
-                                onChangeText={(val) => handleFieldChange(field.name, val)}
-                                error={formErrors[field.name]}
-                                secureTextEntry={field.type === 'password'}
-                                autoCapitalize={field.autoCapitalize}
-                                keyboardType={field.type === 'number' ? 'phone-pad' : (field.type === 'email' ? 'email-address' : 'default')}
-                                leftIcon={<Ionicons name={field.icon as any} size={20} color={colors.textSecondary} />}
+                        <View style={styles.form}>
+                            {registerFields.map((field) => (
+                                <Input
+                                    key={field.name}
+                                    label={field.label}
+                                    placeholder={field.placeholder}
+                                    value={formValues[field.name]}
+                                    onChangeText={(val) => handleFieldChange(field.name, val)}
+                                    error={formErrors[field.name]}
+                                    secureTextEntry={field.type === 'password'}
+                                    autoCapitalize={field.autoCapitalize}
+                                    keyboardType={field.type === 'number' ? 'phone-pad' : (field.type === 'email' ? 'email-address' : 'default')}
+                                    leftIcon={<Ionicons name={field.icon as any} size={20} color={colors.textSecondary} />}
+                                />
+                            ))}
+
+                            <Button
+                                title={loading ? "Creating Account..." : "Sign Up"}
+                                onPress={handleRegister}
+                                disabled={loading}
+                                style={{ backgroundColor: colors.primary, marginTop: 8, marginBottom: 16 }}
                             />
-                        ))}
 
-                        <Button
-                            title={loading ? "Creating Account..." : "Sign Up"}
-                            onPress={handleRegister}
-                            disabled={loading}
-                            style={{ backgroundColor: colors.primary, marginTop: 8, marginBottom: 16 }}
-                        />
-
-                        <View style={styles.loginContainer}>
-                            <ThemeText style={styles.loginText}>Already have an account? </ThemeText>
-                            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                                <ThemeText style={[styles.loginLink, { color: colors.primary }]}>Login</ThemeText>
-                            </TouchableOpacity>
+                            <View style={styles.loginContainer}>
+                                <ThemeText style={styles.loginText}>Already have an account? </ThemeText>
+                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                                    <ThemeText style={[styles.loginLink, { color: colors.primary }]}>Login</ThemeText>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </ThemedSafeAreaView>
     );
 };
 

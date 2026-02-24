@@ -11,7 +11,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/navigation';
 import { useTheme } from '../context';
-import { ThemeText, Button, Input } from '../components';
+import { ThemeText, Button, Input, ThemedSafeAreaView } from '../components';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { login, clearError } from '../store/slices/authSlice';
 import { validateForm, loginFields } from '../utils/validators';
@@ -62,59 +62,61 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={[styles.container, { backgroundColor: colors.background }]}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <View style={styles.header}>
-                    <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
-                        <Ionicons name="cart" size={40} color="#fff" />
+        <ThemedSafeAreaView>
+            <KeyboardAvoidingView
+                style={[styles.container, { backgroundColor: colors.background }]}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    <View style={styles.header}>
+                        <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
+                            <Ionicons name="cart" size={40} color="#fff" />
+                        </View>
+                        <ThemeText style={[styles.appName, { color: colors.text }]}>ZippOrder</ThemeText>
+                        <ThemeText style={[styles.tagline, { color: colors.textSecondary }]}>Bakery delights delivered</ThemeText>
                     </View>
-                    <ThemeText style={[styles.appName, { color: colors.text }]}>ZippOrder</ThemeText>
-                    <ThemeText style={[styles.tagline, { color: colors.textSecondary }]}>Bakery delights delivered</ThemeText>
-                </View>
 
-                <View style={styles.form}>
-                    {loginFields.map((field) => (
-                        <Input
-                            key={field.name}
-                            label={field.label}
-                            placeholder={field.placeholder}
-                            value={formValues[field.name]}
-                            onChangeText={(val) => handleFieldChange(field.name, val)}
-                            error={formErrors[field.name]}
-                            secureTextEntry={field.type === 'password'}
-                            autoCapitalize={field.autoCapitalize}
-                            keyboardType={field.type === 'email' ? 'email-address' : 'default'}
-                            leftIcon={<Ionicons name={field.icon as any} size={20} color={colors.textSecondary} />}
+                    <View style={styles.form}>
+                        {loginFields.map((field) => (
+                            <Input
+                                key={field.name}
+                                label={field.label}
+                                placeholder={field.placeholder}
+                                value={formValues[field.name]}
+                                onChangeText={(val) => handleFieldChange(field.name, val)}
+                                error={formErrors[field.name]}
+                                secureTextEntry={field.type === 'password'}
+                                autoCapitalize={field.autoCapitalize}
+                                keyboardType={field.type === 'email' ? 'email-address' : 'default'}
+                                leftIcon={<Ionicons name={field.icon as any} size={20} color={colors.textSecondary} />}
+                            />
+                        ))}
+
+                        <TouchableOpacity
+                            style={styles.forgotPassword}
+                            onPress={() => navigation.navigate('ForgotPassword' as any)}
+                        >
+                            <ThemeText style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</ThemeText>
+                        </TouchableOpacity>
+
+                        <Button
+                            title={loading ? "Logging in..." : "Login"}
+                            onPress={handleLogin}
+                            disabled={loading}
+                            style={{ backgroundColor: colors.primary, marginBottom: 16 }}
                         />
-                    ))}
 
-                    <TouchableOpacity
-                        style={styles.forgotPassword}
-                        onPress={() => navigation.navigate('ForgotPassword' as any)}
-                    >
-                        <ThemeText style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</ThemeText>
-                    </TouchableOpacity>
-
-                    <Button
-                        title={loading ? "Logging in..." : "Login"}
-                        onPress={handleLogin}
-                        disabled={loading}
-                        style={{ backgroundColor: colors.primary, marginBottom: 16 }}
-                    />
-
-                    <Button
-                        title="Create Account"
-                        onPress={() => navigation.navigate('Register')}
-                        variant="outline"
-                        style={{ borderColor: colors.primary }}
-                        textStyle={{ color: colors.primary }}
-                    />
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                        <Button
+                            title="Create Account"
+                            onPress={() => navigation.navigate('Register')}
+                            variant="outline"
+                            style={{ borderColor: colors.primary }}
+                            textStyle={{ color: colors.primary }}
+                        />
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </ThemedSafeAreaView>
     );
 };
 

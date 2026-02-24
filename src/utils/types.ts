@@ -72,8 +72,8 @@ export interface LoadingProps {
 
 //  ===== Data Models   =====
 export interface User {
-    id: string;
-    name: string;
+    id: string | number;
+    name?: string;
     email: string;
     phone_number?: string;
     dob?: string;
@@ -81,7 +81,7 @@ export interface User {
     created_at?: string;
     updated_at?: string;
 }
-
+// === Auth State ===
 export interface AuthState {
     user: User | null;
     token: string | null;
@@ -89,15 +89,20 @@ export interface AuthState {
     error: string | null;
     isAuthenticated: boolean;
 }
-
+// === Initial State ===
 export const initialState: AuthState = {
     user: null,
     token: null,
-    loading: false,
+    loading: true,
     error: null,
     isAuthenticated: false,
 };
-
+// === ThemedSafeAreaViewProps ===
+export interface ThemedSafeAreaViewProps {
+    children: React.ReactNode;
+    style?: ViewStyle;
+}
+// === Order ===
 export interface Order {
     id: string;
     title: string;

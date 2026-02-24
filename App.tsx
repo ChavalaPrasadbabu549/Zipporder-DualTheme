@@ -5,8 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'react-native';
 import { RootNavigator } from './src/navigation';
 import { Provider } from 'react-redux';
-import { store } from './src/store/store';
 import { ThemeProvider } from './src/context';
+import { store } from './src/store/store';
 
 function App(): React.JSX.Element {
   return (

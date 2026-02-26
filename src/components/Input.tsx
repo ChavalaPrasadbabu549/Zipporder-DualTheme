@@ -96,7 +96,7 @@ const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
     container: {
-        marginBottom: 16,
+        marginBottom: 10,
     },
     label: {
         fontSize: 14,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 7,
+        borderRadius: 8,
         borderWidth: 1,
         paddingHorizontal: 16,
         height: 50,

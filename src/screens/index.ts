@@ -1,5 +1,10 @@
-export * from './LoginScreen';
-export * from './RegisterScreen';
+export * from './Login';
+export * from './Register';
 export * from './Home';
 export * from './Orders';
 export * from './Profile';
+export { default as BakerySelection } from './BakeryScreen';
+export { default as CategoryDetail } from './CategoryDetail';
+export { default as AllCategories } from './AllCategories';
+export { default as ProductDetail } from './ProductDetail';
+export { default as Cart } from './Cart';

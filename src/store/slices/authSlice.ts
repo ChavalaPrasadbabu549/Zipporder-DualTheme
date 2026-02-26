@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { AuthState, User, initialState } from '../../utils/types';
+import { AuthState, User, initialAuthState } from '../../utils/types';
 import api from '../../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -50,17 +50,23 @@ export const register = createAsyncThunk(
     'auth/register',
     async (userData: any, { rejectWithValue }) => {
         try {
-            const response = await api.post('/users/register', userData);
+            const response = await api.post('/users', userData);
 
-            if (response.data && response.data.token && response.data.user) {
-                const { token, user } = response.data;
+            if (response.data && response.data.user) {
+                const { token, user, message } = response.data;
 
-                await AsyncStorage.setItem('token', token);
-                await AsyncStorage.setItem('user', JSON.stringify(user));
+                if (token) {
+                    await AsyncStorage.setItem('token', token);
+                    await AsyncStorage.setItem('user', JSON.stringify(user));
+                }
 
-                return { user, token };
+                return {
+                    user,
+                    token: token || null,
+                    message: message || 'Account created successfully'
+                };
             }
-            return rejectWithValue('Registration failed');
+            return rejectWithValue(response.data?.message || 'Registration failed');
         } catch (error: any) {
             const message = error.response?.data?.message || error.message || 'Registration failed';
             return rejectWithValue(message);
@@ -70,7 +76,7 @@ export const register = createAsyncThunk(
 
 const authSlice = createSlice({
     name: 'auth',
-    initialState,
+    initialState: initialAuthState,
     reducers: {
         logout: (state) => {
             state.user = null;
@@ -105,7 +111,7 @@ const authSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(login.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+            .addCase(login.fulfilled, (state, action: any) => {
                 state.loading = false;
                 state.user = action.payload.user;
                 state.token = action.payload.token;
@@ -120,11 +126,12 @@ const authSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(register.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+            .addCase(register.fulfilled, (state, action: any) => {
                 state.loading = false;
                 state.user = action.payload.user;
                 state.token = action.payload.token;
-                state.isAuthenticated = true;
+                // Only authenticate if we have a token
+                state.isAuthenticated = !!action.payload.token;
             })
             .addCase(register.rejected, (state, action) => {
                 state.loading = false;

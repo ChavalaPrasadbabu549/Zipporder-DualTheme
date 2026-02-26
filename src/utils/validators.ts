@@ -6,12 +6,23 @@ export const validateEmail = (email: string): boolean => {
 };
 
 export const validatePhone = (phone: string): boolean => {
+    // Exactly 10 digits
     const re = /^\d{10}$/;
     return re.test(phone);
 };
 
 export const validatePassword = (password: string): boolean => {
     return password.length >= 6;
+};
+
+export const validateDOB = (dob: string): boolean => {
+    // Check for YYYY-MM-DD format
+    const re = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+    if (!re.test(dob)) return false;
+
+    // Check if it's a valid date (e.g., not 2023-02-31)
+    const date = new Date(dob);
+    return date instanceof Date && !isNaN(date.getTime());
 };
 
 export const validateForm = (values: Record<string, string>, fields: FormFieldConfig[]) => {
@@ -27,15 +38,13 @@ export const validateForm = (values: Record<string, string>, fields: FormFieldCo
                 errors[field.name] = 'Invalid email address';
             } else if (field.name === 'phone_number' && !validatePhone(value)) {
                 errors[field.name] = 'Phone number must be 10 digits';
+            } else if (field.name === 'dob' && !validateDOB(value)) {
+                errors[field.name] = 'Use YYYY-MM-DD format (e.g. 1998-08-31)';
             } else if (field.type === 'password' && !validatePassword(value)) {
                 errors[field.name] = 'Password must be at least 6 characters';
             }
         }
     });
-
-    if (values.confirmPassword && values.password !== values.confirmPassword) {
-        errors.confirmPassword = 'Passwords do not match';
-    }
 
     return errors;
 };
@@ -73,7 +82,7 @@ export const registerFields: FormFieldConfig[] = [
     {
         name: 'phone_number',
         label: 'Phone Number',
-        placeholder: 'Enter phone number',
+        placeholder: 'Enter 10 digit number',
         type: 'number',
         icon: 'call',
         required: true,
@@ -81,7 +90,7 @@ export const registerFields: FormFieldConfig[] = [
     {
         name: 'dob',
         label: 'Date of Birth',
-        placeholder: 'YYYY-MM-DD',
+        placeholder: 'YYYY-MM-DD (e.g. 1998-08-31)',
         type: 'text',
         icon: 'calendar',
         required: true,
@@ -98,14 +107,6 @@ export const registerFields: FormFieldConfig[] = [
         name: 'password',
         label: 'Password',
         placeholder: 'Create a password',
-        type: 'password',
-        icon: 'lock-closed',
-        required: true,
-    },
-    {
-        name: 'confirmPassword',
-        label: 'Confirm Password',
-        placeholder: 'Confirm your password',
         type: 'password',
         icon: 'lock-closed',
         required: true,

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthNavigator } from './AuthNavigator';
 import { TabNavigator } from './TabNavigator';
+import { CategoryDetail, AllCategories, ProductDetail, Cart } from '../screens';
 import { RootStackParamList } from './navigation';
 import { useAppSelector, useAppDispatch } from '../hooks';
 import { initializeAuth } from '../store/slices/authSlice';
@@ -24,7 +25,13 @@ export const RootNavigator: React.FC = () => {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             {isAuthenticated ? (
-                <Stack.Screen name="Main" component={TabNavigator} />
+                <>
+                    <Stack.Screen name="Main" component={TabNavigator} />
+                    <Stack.Screen name="CategoryDetail" component={CategoryDetail} />
+                    <Stack.Screen name="AllCategories" component={AllCategories} />
+                    <Stack.Screen name="ProductDetail" component={ProductDetail} />
+                    <Stack.Screen name="Cart" component={Cart} />
+                </>
             ) : (
                 <Stack.Screen name="Auth" component={AuthNavigator} />
             )}

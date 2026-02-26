@@ -81,6 +81,62 @@ export interface User {
     created_at?: string;
     updated_at?: string;
 }
+
+export interface Category {
+    id: number;
+    name: string;
+    image: string;
+    description: string;
+    isActive: boolean;
+    created_at: string;
+    updated_at: string;
+    subcategory_count: number;
+}
+
+export interface SubCategory {
+    id: number;
+    name: string;
+    image: string;
+    description: string;
+    isActive: boolean;
+    category_id: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Product {
+    id: number;
+    name: string;
+    images: string; // The JSON string or actual path
+    description: string;
+    isActive: boolean;
+    category_id: number;
+    subcategory_id: number;
+    specifications: Record<string, any>;
+    price: number;
+    discount_price: number;
+    quantity: number;
+    created_at: string;
+    updated_at: string;
+    category: {
+        id: number;
+        name: string;
+        image: string;
+    };
+    subcategory: {
+        id: number;
+        name: string;
+        image: string;
+    };
+}
+
+export interface Pagination {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
 // === Auth State ===
 export interface AuthState {
     user: User | null;
@@ -89,19 +145,62 @@ export interface AuthState {
     error: string | null;
     isAuthenticated: boolean;
 }
-// === Initial State ===
-export const initialState: AuthState = {
+
+// === Product State ===
+export interface CatalogState {
+    categories: Category[];
+    subCategories: Record<number, SubCategory[]>; // categoryId -> SubCategory[]
+    products: Product[];
+    loading: boolean;
+    error: string | null;
+    pagination: Pagination | null;
+}
+
+// === Cart State ===
+export interface CartItem {
+    id: number;
+    user_id: number;
+    product_id: number;
+    quantity: number;
+    product: Product;
+}
+
+export interface CartState {
+    items: CartItem[];
+    loading: boolean;
+    error: string | null;
+}
+
+// === Initial States ===
+export const initialAuthState: AuthState = {
     user: null,
     token: null,
     loading: true,
     error: null,
     isAuthenticated: false,
 };
+
+export const initialCatalogState: CatalogState = {
+    categories: [],
+    subCategories: {},
+    products: [],
+    loading: false,
+    error: null,
+    pagination: null,
+};
+
+export const initialCartState: CartState = {
+    items: [],
+    loading: false,
+    error: null,
+};
+
 // === ThemedSafeAreaViewProps ===
 export interface ThemedSafeAreaViewProps {
     children: React.ReactNode;
     style?: ViewStyle;
 }
+
 // === Order ===
 export interface Order {
     id: string;

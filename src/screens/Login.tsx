@@ -7,6 +7,7 @@ import {
     Platform,
     Alert,
     ScrollView,
+    ToastAndroid,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/navigation';
@@ -34,12 +35,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const { loading, error } = useAppSelector((state) => state.auth);
     const { colors } = useTheme();
 
-    useEffect(() => {
-        if (error) {
-            Alert.alert('Login Failed', error);
-            dispatch(clearError());
-        }
-    }, [error, dispatch]);
 
     const handleFieldChange = (name: string, value: string) => {
         setFormValues(prev => ({ ...prev, [name]: value }));
@@ -58,15 +53,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         if (!validate()) {
             return;
         }
-        dispatch(login({ email: formValues.email, password: formValues.password }));
+        dispatch(login({ email: formValues.email, password: formValues.password }))
+            .unwrap()
+            .then(() => {
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show('Login Successful!', ToastAndroid.SHORT);
+                }
+            });
     };
 
     return (
-        <ThemedSafeAreaView>
-            <KeyboardAvoidingView
-                style={[styles.container, { backgroundColor: colors.background }]}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
+        <KeyboardAvoidingView
+            style={[styles.container, { backgroundColor: colors.background }]}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+            <ThemedSafeAreaView>
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     <View style={styles.header}>
                         <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
@@ -115,8 +116,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         />
                     </View>
                 </ScrollView>
-            </KeyboardAvoidingView>
-        </ThemedSafeAreaView>
+            </ThemedSafeAreaView>
+        </KeyboardAvoidingView>
+
     );
 };
 

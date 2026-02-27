@@ -8,16 +8,20 @@ import {
     ScrollView,
     Alert,
     ToastAndroid,
+    ImageBackground,
+    Dimensions,
     StatusBar,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/navigation';
 import { useTheme } from '../context';
-import { ThemeText, Button, Input, ThemedSafeAreaView } from '../components';
+import { ThemeText, Button, Input } from '../components';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { register, clearError } from '../store/slices/authSlice';
 import { validateForm, registerFields } from '../utils/validators';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+const { width, height } = Dimensions.get('window');
 
 type RegisterScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -34,6 +38,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         password: '',
     });
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [agreed, setAgreed] = useState(false);
+
     const dispatch = useAppDispatch();
     const { loading, error } = useAppSelector((state) => state.auth);
     const { colors } = useTheme();
@@ -62,6 +68,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         if (!validate()) {
             return;
         }
+        if (!agreed) {
+            Alert.alert('Terms & Conditions', 'Please agree to the terms and conditions to continue.');
+            return;
+        }
         dispatch(register({
             phone_number: formValues.phone_number,
             email: formValues.email,
@@ -78,40 +88,50 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     };
 
     return (
-        <ThemedSafeAreaView>
-            <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
             >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
+                <ImageBackground
+                    source={require('../asssets/auth_bg.png')}
+                    style={styles.headerBackground}
+                    resizeMode="cover"
                 >
-                    {/* <StatusBar
-                        barStyle={colors.background === '#000' ? 'light-content' : 'dark-content'}
-                        backgroundColor={colors.background}
-                        translucent
-                    /> */}
-                    <View style={[styles.bgBlob, { backgroundColor: colors.primary }]} />
+                    <View style={styles.overlay} />
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Ionicons name="chevron-back" size={28} color="#fff" />
+                    </TouchableOpacity>
 
-                    <View style={styles.content}>
-                        <View style={styles.header}>
-                            <View style={[styles.iconContainer, { backgroundColor: colors.surface }]}>
-                                <Ionicons name="person-add" size={32} color={colors.primary} />
+                    <View style={styles.headerContent}>
+                        <View style={styles.appLogoContainer}>
+                            <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
+                                <Ionicons name="cart" size={30} color="#fff" />
                             </View>
-                            <ThemeText style={styles.title}>Create Account</ThemeText>
-                            <ThemeText style={[styles.subtitle, { color: colors.textSecondary }]}>
-                                Discover the finest bakery items near you
-                            </ThemeText>
+                            <ThemeText style={styles.appName}>ZippOrder</ThemeText>
                         </View>
 
-                        <View style={styles.formCard}>
+                        <View style={styles.welcomeContainer}>
+                            <ThemeText style={styles.welcomeTitle}>Create Account</ThemeText>
+                            <ThemeText style={styles.welcomeSubtitle}>Register to get started!</ThemeText>
+                        </View>
+                    </View>
+                </ImageBackground>
+
+                <View style={[styles.formCard, { backgroundColor: colors.surface }]}>
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        style={styles.keyboardView}
+                    >
+                        <View style={styles.form}>
                             {registerFields.map((field) => (
                                 <Input
                                     key={field.name}
-                                    label={field.label}
                                     placeholder={field.placeholder}
                                     value={formValues[field.name]}
                                     onChangeText={(val) => handleFieldChange(field.name, val)}
@@ -120,32 +140,43 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                                     autoCapitalize={field.autoCapitalize}
                                     keyboardType={field.type === 'number' ? 'phone-pad' : (field.type === 'email' ? 'email-address' : 'default')}
                                     maxLength={field.name === 'phone_number' ? 10 : (field.name === 'dob' ? 10 : undefined)}
-                                    leftIcon={<Ionicons name={field.icon as any} size={20} color={colors.primary} />}
+                                    leftIcon={<Ionicons name={field.icon as any} size={20} color={colors.textSecondary} />}
                                     containerStyle={styles.inputSpacing}
                                 />
                             ))}
 
+                            <TouchableOpacity
+                                style={styles.agreeContainer}
+                                onPress={() => setAgreed(!agreed)}
+                            >
+                                <Ionicons
+                                    name={agreed ? "checkbox" : "square-outline"}
+                                    size={22}
+                                    color={agreed ? colors.primary : colors.textSecondary}
+                                />
+                                <ThemeText style={styles.agreeText}>
+                                    I agree to the <ThemeText style={{ color: colors.primary, fontWeight: 'bold' }}>Terms & Conditions</ThemeText>
+                                </ThemeText>
+                            </TouchableOpacity>
+
                             <Button
-                                title={loading ? "Registering..." : "Sign Up"}
+                                title={loading ? "Registering..." : "Register"}
                                 onPress={handleRegister}
                                 disabled={loading}
-                                style={{
-                                    backgroundColor: colors.primary,
-                                    marginVertical: 20,
-                                }}
+                                style={styles.registerButton}
                             />
-                        </View>
 
-                        <View style={styles.footer}>
-                            <ThemeText style={styles.loginText}>Already a member? </ThemeText>
-                            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                                <ThemeText style={[styles.loginLink, { color: colors.primary }]}>Login here</ThemeText>
-                            </TouchableOpacity>
+                            <View style={styles.footer}>
+                                <ThemeText style={[styles.footerText, { color: colors.textSecondary }]}>Already have an account? </ThemeText>
+                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                                    <ThemeText style={[styles.footerLink, { color: colors.primary }]}>Login</ThemeText>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </ThemedSafeAreaView>
+                    </KeyboardAvoidingView>
+                </View>
+            </ScrollView>
+        </View>
     );
 };
 
@@ -155,109 +186,109 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         flexGrow: 1,
-        paddingBottom: 40,
     },
-    bgBlob: {
+    headerBackground: {
+        width: width,
+        height: height * 0.35,
+        paddingTop: StatusBar.currentHeight || 40,
+    },
+    overlay: {
+        ...StyleSheet.absoluteFill,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+    },
+    backButton: {
         position: 'absolute',
-        top: -150,
-        right: -100,
-        width: 400,
-        height: 400,
-        borderRadius: 200,
-        opacity: 0.1,
+        top: (StatusBar.currentHeight || 40) + 10,
+        left: 20,
+        zIndex: 10,
     },
-    content: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-    },
-    header: {
-        marginBottom: 30,
-        alignItems: 'center',
-    },
-    iconContainer: {
-        width: 70,
-        height: 70,
-        borderRadius: 20,
+    headerContent: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 20,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        paddingHorizontal: 24,
     },
-    title: {
-        fontSize: 34,
-        fontWeight: '900',
-        marginBottom: 8,
-        textAlign: 'center',
+    appLogoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 15,
     },
-    subtitle: {
-        fontSize: 16,
-        lineHeight: 24,
-        textAlign: 'center',
-        paddingHorizontal: 20,
+    logoIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+    },
+    appName: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    welcomeContainer: {
+        alignItems: 'center',
+    },
+    welcomeTitle: {
+        fontSize: 26,
+        fontWeight: 'bold',
+        color: '#fff',
+        marginBottom: 6,
+    },
+    welcomeSubtitle: {
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.8)',
     },
     formCard: {
+        flex: 1,
+        marginTop: -30,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        paddingHorizontal: 24,
+        paddingTop: 30,
+        paddingBottom: 40,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: -4,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 10,
+    },
+    keyboardView: {
+        flex: 1,
+    },
+    form: {
         width: '100%',
     },
     inputSpacing: {
         marginBottom: 16,
     },
-    registerBtn: {
-        height: 56,
-        borderRadius: 18,
-        marginTop: 10,
-        elevation: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-    },
-    divider: {
+    agreeContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 30,
+        marginVertical: 15,
     },
-    line: {
-        flex: 1,
-        height: 1,
-        opacity: 0.3,
-    },
-    dividerText: {
-        marginHorizontal: 15,
+    agreeText: {
+        marginLeft: 10,
         fontSize: 14,
-        fontWeight: 'bold',
-        opacity: 0.5,
     },
-    socialContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 20,
-        marginBottom: 30,
-    },
-    socialBtn: {
-        width: 60,
-        height: 60,
-        borderRadius: 20,
-        borderWidth: 1.5,
-        alignItems: 'center',
-        justifyContent: 'center',
+    registerButton: {
+        marginVertical: 20,
+
     },
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        alignItems: 'center',
         marginTop: 10,
     },
-    loginText: {
+    footerText: {
         fontSize: 15,
-        opacity: 0.7,
     },
-    loginLink: {
+    footerLink: {
         fontSize: 15,
-        fontWeight: '700',
+        fontWeight: 'bold',
     },
 });
 

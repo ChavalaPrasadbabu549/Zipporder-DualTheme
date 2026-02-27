@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Cart, Profile, BakerySelection } from '../screens';
+import { Home, BakerySelection, AllCategories, DecorationScreen, BeveragesScreen } from '../screens';
 import { MainTabParamList } from './navigation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../context';
@@ -20,10 +20,12 @@ export const TabNavigator: React.FC = () => {
                         iconName = focused ? 'home' : 'home-outline';
                     } else if (route.name === 'Bakery') {
                         iconName = focused ? 'pizza' : 'pizza-outline';
-                    } else if (route.name === 'Cart') {
-                        iconName = focused ? 'cart' : 'cart-outline';
-                    } else if (route.name === 'Profile') {
-                        iconName = focused ? 'person' : 'person-outline';
+                    } else if (route.name === 'Categories') {
+                        iconName = focused ? 'folder' : 'folder-outline';
+                    } else if (route.name === 'Decoration') {
+                        iconName = focused ? 'sparkles' : 'sparkles-outline';
+                    } else if (route.name === 'Beverages') {
+                        iconName = focused ? 'wine' : 'wine-outline';
                     }
 
                     return <Ionicons name={iconName} size={size} color={color} />;
@@ -47,8 +49,9 @@ export const TabNavigator: React.FC = () => {
         >
             <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
             <Tab.Screen name="Bakery" component={BakerySelection} options={{ headerShown: false }} />
-            <Tab.Screen name="Cart" component={Cart} options={{ headerShown: false }} />
-            <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+            <Tab.Screen name="Categories" component={AllCategories} options={{ headerShown: false }} />
+            <Tab.Screen name="Decoration" component={DecorationScreen} options={{ headerShown: false }} />
+            <Tab.Screen name="Beverages" component={BeveragesScreen} options={{ headerShown: false }} />
         </Tab.Navigator>
     );
 };

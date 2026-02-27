@@ -75,13 +75,14 @@ export interface User {
     id: string | number;
     name?: string;
     email: string;
+    avatar?: string;
     phone_number?: string;
     dob?: string;
     location?: string;
     created_at?: string;
     updated_at?: string;
 }
-
+// Category Interface
 export interface Category {
     id: number;
     name: string;
@@ -92,7 +93,13 @@ export interface Category {
     updated_at: string;
     subcategory_count: number;
 }
-
+// CategoryCard Interface
+export interface CategoryCardProps {
+    category: Category;
+    onPress: () => void;
+    size?: 'small' | 'large';
+}
+// SubCategory Interface
 export interface SubCategory {
     id: number;
     name: string;
@@ -103,11 +110,11 @@ export interface SubCategory {
     created_at: string;
     updated_at: string;
 }
-
+// Product Interface
 export interface Product {
     id: number;
     name: string;
-    images: string; // The JSON string or actual path
+    images: string;
     description: string;
     isActive: boolean;
     category_id: number;
@@ -129,7 +136,7 @@ export interface Product {
         image: string;
     };
 }
-
+// Pagination Interface
 export interface Pagination {
     total: number;
     page: number;
@@ -149,7 +156,7 @@ export interface AuthState {
 // === Product State ===
 export interface CatalogState {
     categories: Category[];
-    subCategories: Record<number, SubCategory[]>; // categoryId -> SubCategory[]
+    subCategories: Record<number, SubCategory[]>;
     products: Product[];
     loading: boolean;
     error: string | null;
@@ -169,6 +176,11 @@ export interface CartState {
     items: CartItem[];
     loading: boolean;
     error: string | null;
+}
+
+// === Wishlist State ===
+export interface WishlistState {
+    items: Product[];
 }
 
 // === Initial States ===
@@ -193,6 +205,10 @@ export const initialCartState: CartState = {
     items: [],
     loading: false,
     error: null,
+};
+
+export const initialWishlistState: WishlistState = {
+    items: [],
 };
 
 // === ThemedSafeAreaViewProps ===

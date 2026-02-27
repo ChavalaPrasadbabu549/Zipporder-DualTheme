@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions, RefreshControl } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchProducts, fetchSubCategories } from '../store/slices/catalogSlice';
-import { ThemeText, ThemedSafeAreaView, Card } from '../components';
+import { ThemeText, ThemedSafeAreaView, ProductCard } from '../components';
 import { useTheme } from '../context';
 import { Product, SubCategory } from '../utils/types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { formatImageUrl } from '../utils';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
@@ -17,8 +16,18 @@ const BakeryScreen: React.FC = () => {
     const { products, loading, subCategories } = useAppSelector((state) => state.catalog);
     const { colors } = useTheme();
     const [selectedSubId, setSelectedSubId] = useState<number | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
 
-    const CATEGORY_ID = 1; // Bakery Category ID
+    const CATEGORY_ID = 1;
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        await Promise.all([
+            dispatch(fetchSubCategories(CATEGORY_ID)),
+            dispatch(fetchProducts({ categoryId: CATEGORY_ID, subCategoryId: selectedSubId || undefined }))
+        ]);
+        setRefreshing(false);
+    };
     const bakerySubCategories = subCategories[CATEGORY_ID] || [];
 
     useEffect(() => {
@@ -68,54 +77,9 @@ const BakeryScreen: React.FC = () => {
         );
     };
 
-    const renderProductItem = ({ item }: { item: Product }) => {
-        const imageUrl = formatImageUrl(item.images);
-        return (
-            <TouchableOpacity
-                style={styles.productCard}
-                onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
-            >
-                <Card style={{ padding: 0, overflow: 'hidden', flex: 1 }}>
-                    <View style={styles.imageWrapper}>
-                        {imageUrl ? (
-                            <Image
-                                source={{ uri: imageUrl }}
-                                style={styles.productImage}
-                                resizeMode="cover"
-                            />
-                        ) : (
-                            <View style={[styles.productImage, { backgroundColor: colors.surface, justifyContent: 'center', alignItems: 'center' }]}>
-                                <Ionicons name="image-outline" size={40} color={colors.textSecondary} />
-                            </View>
-                        )}
-                        {item.discount_price < item.price && (
-                            <View style={styles.badge}>
-                                <ThemeText style={styles.badgeText}>OFFER</ThemeText>
-                            </View>
-                        )}
-                    </View>
-                    <View style={styles.productInfo}>
-                        <ThemeText style={styles.productName} numberOfLines={1}>{item.name}</ThemeText>
-                        <ThemeText style={styles.productDesc} numberOfLines={2}>
-                            {item.description || 'Delicious bakery item fresh for you.'}
-                        </ThemeText>
-
-                        <View style={styles.priceRow}>
-                            <View>
-                                <ThemeText style={styles.price}>₹{item.discount_price}</ThemeText>
-                                {item.price > item.discount_price && (
-                                    <ThemeText style={styles.oldPrice}>₹{item.price}</ThemeText>
-                                )}
-                            </View>
-                            <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.primary }]}>
-                                <Ionicons name="cart-outline" size={18} color="#FFF" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </Card>
-            </TouchableOpacity>
-        );
-    };
+    const renderProductItem = ({ item }: { item: Product }) => (
+        <ProductCard product={item} width={(Dimensions.get('window').width - 40) / 2} />
+    );
 
     return (
         <ThemedSafeAreaView style={styles.container}>
@@ -142,28 +106,35 @@ const BakeryScreen: React.FC = () => {
                 </ScrollView>
             </View>
 
-            {loading ? (
-                <View style={styles.center}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                    <ThemeText style={{ marginTop: 10 }}>Updating products...</ThemeText>
-                </View>
-            ) : (
-                <FlatList
-                    data={products}
-                    renderItem={renderProductItem}
-                    keyExtractor={(item) => item.id.toString()}
-                    contentContainerStyle={styles.listContent}
-                    showsVerticalScrollIndicator={false}
-                    numColumns={2}
-                    columnWrapperStyle={styles.columnWrapper}
-                    ListEmptyComponent={
+            <FlatList
+                data={products}
+                renderItem={renderProductItem}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                numColumns={2}
+                columnWrapperStyle={styles.columnWrapper}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                        colors={[colors.primary]}
+                        tintColor={colors.primary}
+                    />
+                }
+                ListEmptyComponent={
+                    loading && !refreshing ? (
+                        <View style={styles.center}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                        </View>
+                    ) : (
                         <View style={styles.center}>
                             <Ionicons name="basket-outline" size={60} color={colors.border} />
                             <ThemeText style={{ marginTop: 10 }}>No products found in this category.</ThemeText>
                         </View>
-                    }
-                />
-            )}
+                    )
+                }
+            />
         </ThemedSafeAreaView>
     );
 };
@@ -225,70 +196,6 @@ const styles = StyleSheet.create({
     },
     columnWrapper: {
         justifyContent: 'space-between',
-    },
-    productCard: {
-        width: '48%',
-        marginBottom: 16,
-        padding: 0,
-    },
-    imageWrapper: {
-        position: 'relative',
-    },
-    productImage: {
-        width: '100%',
-        height: 140,
-        backgroundColor: '#f5f5f5',
-    },
-    badge: {
-        position: 'absolute',
-        top: 8,
-        left: 8,
-        backgroundColor: '#FF004D',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    badgeText: {
-        color: '#FFF',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    productInfo: {
-        padding: 12,
-    },
-    productName: {
-        fontSize: 15,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    productDesc: {
-        fontSize: 11,
-        opacity: 0.6,
-        lineHeight: 16,
-        marginBottom: 10,
-    },
-    priceRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    price: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#FF004D',
-    },
-    oldPrice: {
-        fontSize: 11,
-        textDecorationLine: 'line-through',
-        opacity: 0.4,
-        marginLeft: 4,
-    },
-    addButton: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     center: {
         flex: 1,

@@ -1,8 +1,8 @@
 import Config from "react-native-config";
 
 // Format image URL
-export const formatImageUrl = (imageStr: string) => {
-    if (!imageStr) return null;
+export const formatImageUrl = (imageStr: string): string | undefined => {
+    if (!imageStr) return undefined;
 
     const baseUrl = Config.IMAGE_BASE_URL || '';
 

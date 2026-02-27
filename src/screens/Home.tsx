@@ -2,24 +2,20 @@ import React, { useEffect } from 'react';
 import {
     View,
     StyleSheet,
-    FlatList,
-    Image,
-    TouchableOpacity,
-    Dimensions,
-    ScrollView
+    ScrollView,
+    RefreshControl,
+    TouchableOpacity
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchCategories } from '../store/slices/catalogSlice';
-import { ThemeText, ThemedSafeAreaView, Card, Loading } from '../components';
+import { ThemeText, ThemedSafeAreaView, Loading, CategorySection } from '../components';
 import { useTheme } from '../context';
-import { Category } from '../utils/types';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { formatImageUrl } from '../utils';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
 
-const { width } = Dimensions.get('window');
+
 export const Home: React.FC = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const dispatch = useAppDispatch();
@@ -30,35 +26,9 @@ export const Home: React.FC = () => {
         dispatch(fetchCategories({}));
     }, [dispatch]);
 
-    const renderCategoryItem = ({ item }: { item: Category }) => {
-        const imageUrl = formatImageUrl(item.image);
-        return (
-            <TouchableOpacity
-                style={styles.categoryCard}
-                onPress={() => navigation.navigate('CategoryDetail', {
-                    categoryId: item.id,
-                    categoryName: item.name
-                })}
-            >
-                <View style={[styles.imageContainer, { backgroundColor: colors.surface }]}>
-                    {imageUrl ? (
-                        <Image
-                            source={{ uri: imageUrl }}
-                            style={styles.categoryImage}
-                        />
-                    ) : (
-                        <View style={[styles.categoryImage, { backgroundColor: colors.surface, justifyContent: 'center', alignItems: 'center' }]}>
-                            <Ionicons name="image-outline" size={24} color={colors.textSecondary} />
-                        </View>
-                    )}
-                </View>
-                <ThemeText style={styles.categoryName}>{item.name}</ThemeText>
-                <ThemeText style={[styles.subCount, { color: colors.textSecondary }]}>
-                    {item.subcategory_count} Items
-                </ThemeText>
-            </TouchableOpacity>
-        );
-    };
+    const onRefresh = React.useCallback(() => {
+        dispatch(fetchCategories({}));
+    }, [dispatch]);
 
     if (loading && categories.length === 0) {
         return <Loading />;
@@ -66,26 +36,36 @@ export const Home: React.FC = () => {
 
     return (
         <ThemedSafeAreaView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={loading}
+                        onRefresh={onRefresh}
+                        colors={[colors.primary]}
+                        tintColor={colors.primary}
+                    />
+                }
+            >
                 <View style={styles.header}>
-                    <ThemeText style={styles.greeting}>Hello there!</ThemeText>
-                    <View style={styles.sectionHeader}>
-                        <ThemeText style={styles.title}>Categories</ThemeText>
-                        <TouchableOpacity onPress={() => navigation.navigate('AllCategories')}>
-                            <ThemeText style={[styles.seeAll, { color: colors.primary }]}>See All</ThemeText>
+                    <View style={styles.headerTop}>
+                        <View>
+                            <ThemeText style={styles.greeting}>Hello there!</ThemeText>
+                            <ThemeText style={styles.title}>Welcome to Zipporder</ThemeText>
+                        </View>
+                        <TouchableOpacity
+                            style={[styles.profileButton, { backgroundColor: colors.primary + '15' }]}
+                            onPress={() => navigation.navigate('Profile' as any)}
+                        >
+                            <Ionicons name="person" size={20} color={colors.primary} />
                         </TouchableOpacity>
                     </View>
                 </View>
-                <FlatList
-                    data={categories.slice(0, 4)}
-                    renderItem={renderCategoryItem}
-                    keyExtractor={(item) => item.id.toString()}
-                    numColumns={4}
-                    contentContainerStyle={styles.listContent}
-                    scrollEnabled={false}
-                />
+                {/* Category Section */}
+                <CategorySection categories={categories} size="large" />
 
-                <Card style={styles.promoCard}>
+                {/* Promo Card */}
+                {/* <Card style={styles.promoCard}>
                     <View style={styles.promoContent}>
                         <ThemeText style={styles.promoTitle}>Fresh Bakery</ThemeText>
                         <ThemeText style={styles.promoDesc}>Get 20% off on all cakes today!</ThemeText>
@@ -99,9 +79,7 @@ export const Home: React.FC = () => {
                             <ThemeText style={{ color: colors.primary, fontWeight: 'bold' }}>Order Now</ThemeText>
                         </TouchableOpacity>
                     </View>
-                </Card>
-
-
+                </Card> */}
             </ScrollView>
         </ThemedSafeAreaView>
     );
@@ -115,6 +93,18 @@ const styles = StyleSheet.create({
         padding: 20,
         paddingBottom: 10,
     },
+    headerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    profileButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     greeting: {
         fontSize: 16,
         opacity: 0.7,
@@ -123,51 +113,6 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginTop: 4,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 20,
-        paddingHorizontal: 20,
-    },
-    seeAll: {
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    listContent: {
-        padding: 10,
-    },
-    categoryCard: {
-        width: (width - 40) / 4,
-        padding: 5,
-        alignItems: 'center',
-    },
-    imageContainer: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        padding: 5,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        marginBottom: 8,
-    },
-    categoryImage: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 25,
-    },
-    categoryName: {
-        fontSize: 12,
-        fontWeight: '600',
-        textAlign: 'center',
-    },
-    subCount: {
-        fontSize: 10,
-        marginTop: 2,
     },
     promoCard: {
         margin: 20,

@@ -99,9 +99,10 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     label: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
-        marginBottom: 8,
+        marginBottom: 4,
+        fontFamily: 'Inter-SemiBold',
     },
 
     inputContainer: {
@@ -114,8 +115,9 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        fontSize: 16,
+        fontSize: 13,
         paddingVertical: 12,
+        fontFamily: 'Inter-Regular',
     },
     inputWithLeftIcon: {
         paddingLeft: 8,

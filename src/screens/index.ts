@@ -1,12 +1,13 @@
 export * from './Login';
 export * from './Register';
+export * from './ForgotPassword';
 export * from './Home';
 export * from './Orders';
 export * from './Profile';
-export { default as BakerySelection } from './Bakery';
+export * from './TrackOrder';
 export { default as AllCategories } from './AllCategories';
 export { default as ProductDetail } from './Product';
 export { default as Cart } from './Cart';
 export { default as Wishlist } from './Wishlist';
-export { default as DecorationScreen } from './Decoration';
-export { default as BeveragesScreen } from './Beverages';
+export { default as CategoryDetail } from './CategoryDetail';
+export { default as WelcomeScreen } from './Welcome';

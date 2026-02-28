@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { initialCatalogState, Category, SubCategory, Product, Pagination } from '../../utils/types';
+import { initialCatalogState, } from '../../utils/types';
 import api from '../../utils/api';
 
 // Fetch Categories
@@ -18,7 +18,7 @@ export const fetchCategories = createAsyncThunk(
 // Fetch SubCategories by Category ID
 export const fetchSubCategories = createAsyncThunk(
     'catalog/fetchSubCategories',
-    async (categoryId: number, { rejectWithValue }) => {
+    async (categoryId: number | string, { rejectWithValue }) => {
         try {
             const response = await api.get(`/subcategories/category/${categoryId}`);
             return { categoryId, data: response.data };
@@ -31,7 +31,7 @@ export const fetchSubCategories = createAsyncThunk(
 // Fetch Products by Category and SubCategory
 export const fetchProducts = createAsyncThunk(
     'catalog/fetchProducts',
-    async ({ categoryId, subCategoryId, page = 1, limit = 10 }: { categoryId?: number; subCategoryId?: number; page?: number; limit?: number }, { rejectWithValue }) => {
+    async ({ categoryId, subCategoryId, page = 1, limit = 10 }: { categoryId?: number | string; subCategoryId?: number | string; page?: number; limit?: number }, { rejectWithValue }) => {
         try {
             let url = `/products?page=${page}&limit=${limit}`;
             if (categoryId) url += `&categoryId=${categoryId}`;

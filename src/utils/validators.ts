@@ -112,3 +112,31 @@ export const registerFields: FormFieldConfig[] = [
         required: true,
     },
 ];
+
+export const forgotPasswordFields: FormFieldConfig[] = [
+    {
+        name: 'email',
+        label: 'Email Address',
+        placeholder: 'Enter your email',
+        type: 'email',
+        icon: 'mail',
+        required: true,
+        autoCapitalize: 'none',
+    },
+    {
+        name: 'password',
+        label: 'Password',
+        placeholder: 'Enter your password',
+        type: 'password',
+        icon: 'lock-closed',
+        required: true,
+    },
+    {
+        name: 'confirm_password',
+        label: 'Confirm Password',
+        placeholder: 'Confirm your password',
+        type: 'password',
+        icon: 'lock-closed',
+        required: true,
+    },
+];

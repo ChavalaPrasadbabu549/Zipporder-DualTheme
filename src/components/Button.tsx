@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
 import { ButtonProps } from '../utils/types';
 import { useTheme } from '../context';
 
@@ -7,11 +7,13 @@ const Button: React.FC<ButtonProps> = ({
     title,
     onPress,
     variant = 'primary',
+    loading = false,
     disabled = false,
     style,
-    textStyle
+    textStyle,
 }) => {
     const { colors } = useTheme();
+    const isDisabled = disabled || loading;
 
     const getButtonStyle = (): ViewStyle => {
         const baseStyle = [styles.button, { backgroundColor: colors.primary }];
@@ -36,12 +38,30 @@ const Button: React.FC<ButtonProps> = ({
 
     return (
         <TouchableOpacity
-            style={[getButtonStyle(), disabled && styles.disabledButton, style]}
+            style={[
+                getButtonStyle(),
+                isDisabled && styles.disabledButton,
+                isDisabled && {
+                    backgroundColor: variant === 'outline' ? 'transparent' : colors.disabled,
+                    borderColor: variant === 'outline' ? colors.disabled : undefined,
+                    elevation: 0,
+                    shadowOpacity: 0,
+                },
+                style
+            ]}
             onPress={onPress}
-            disabled={disabled}
+            disabled={isDisabled}
             activeOpacity={0.7}
         >
-            <Text style={[getTextStyle(), textStyle]}>{title}</Text>
+            {loading ? (
+                <ActivityIndicator color={variant === 'outline' ? colors.primary : '#FFFFFF'} />
+            ) : (
+                <Text style={[
+                    getTextStyle(),
+                    isDisabled && { color: variant === 'outline' ? colors.disabled : '#FFFFFF' },
+                    textStyle
+                ]}>{title}</Text>
+            )}
         </TouchableOpacity>
     );
 };
@@ -61,13 +81,12 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
     },
     disabledButton: {
-        backgroundColor: '#ccc',
-        opacity: 0.6,
-        elevation: 0,
+        opacity: 0.8,
     },
     buttonText: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '500',
+        fontFamily: 'Inter-Medium',
     },
 });
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, BakerySelection, AllCategories, DecorationScreen, BeveragesScreen } from '../screens';
+import { Home, AllCategories, CategoryDetail } from '../screens';
 import { MainTabParamList } from './navigation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../context';
@@ -22,7 +22,7 @@ export const TabNavigator: React.FC = () => {
                         iconName = focused ? 'pizza' : 'pizza-outline';
                     } else if (route.name === 'Categories') {
                         iconName = focused ? 'folder' : 'folder-outline';
-                    } else if (route.name === 'Decoration') {
+                    } else if (route.name === 'Decorators') {
                         iconName = focused ? 'sparkles' : 'sparkles-outline';
                     } else if (route.name === 'Beverages') {
                         iconName = focused ? 'wine' : 'wine-outline';
@@ -45,13 +45,14 @@ export const TabNavigator: React.FC = () => {
                 headerTitleStyle: {
                     fontWeight: 'bold',
                 },
+                activeOpacity: 0,
             })}
         >
             <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
-            <Tab.Screen name="Bakery" component={BakerySelection} options={{ headerShown: false }} />
             <Tab.Screen name="Categories" component={AllCategories} options={{ headerShown: false }} />
-            <Tab.Screen name="Decoration" component={DecorationScreen} options={{ headerShown: false }} />
-            <Tab.Screen name="Beverages" component={BeveragesScreen} options={{ headerShown: false }} />
+            <Tab.Screen name="Bakery" component={CategoryDetail} options={{ headerShown: false }} initialParams={{ categoryName: 'Bakery' }} />
+            <Tab.Screen name="Decorators" component={CategoryDetail} options={{ headerShown: false }} initialParams={{ categoryName: 'decorators' }} />
+            <Tab.Screen name="Beverages" component={CategoryDetail} options={{ headerShown: false }} initialParams={{ categoryName: 'Beverages' }} />
         </Tab.Navigator>
     );
 };

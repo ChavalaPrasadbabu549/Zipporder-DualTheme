@@ -107,9 +107,9 @@ export const Profile: React.FC<Props> = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
 
-                    <ThemeText style={styles.userName}>{user?.name || 'Sarah Johnson'}</ThemeText>
+                    <ThemeText style={styles.userName}>{user?.name || user?.phone_number || 'Guest User'}</ThemeText>
                     <ThemeText style={[styles.userEmail, { color: colors.textSecondary }]}>
-                        {user?.email || 'sarah@example.com'}
+                        {user?.email || 'No email provided'}
                     </ThemeText>
 
                     <TouchableOpacity style={[styles.editProfileButton, { borderColor: colors.border }]}>
@@ -123,7 +123,7 @@ export const Profile: React.FC<Props> = ({ navigation }) => {
                         icon="cube-outline"
                         label="My Orders"
                         value="5"
-                        onPress={() => { }}
+                        onPress={() => { navigation.navigate('Orders') }}
                         iconColor="#E67E22"
                     />
                     <MenuItem

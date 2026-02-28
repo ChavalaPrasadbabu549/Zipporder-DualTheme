@@ -2,33 +2,35 @@
 
 const palette = {
     // Brand Colors
-    primary: '#FF004D', // bas
-    primaryDark: '#FF004D', // Indigo 700
-    authentication: '#FF004D', // Indigo 500
-    secondary: '#EC4899', // Pink 500 - Playful accent
-    accent: '#10B981', // Emerald 500 - Success/Go
+    primary: '#FF004D',
+    primaryDark: '#FF004D',
+    authentication: '#FF004D',
+    secondary: '#EC4899',
+    accent: '#10B981',
 
     // Neutrals - Light
     white: '#FFFFFF',
-    offWhite: '#F8FAFC', // Slate 50
-    lightSurface: '#F1F5F9', // Slate 100
-    lightBorder: '#E2E8F0', // Slate 200
-    lightText: '#0F172A', // Slate 900
-    lightTextSecondary: '#64748B', // Slate 500
+    offWhite: '#F8FAFC',
+    lightSurface: '#F1F5F9',
+    lightBorder: '#E2E8F0',
+    lightText: '#0F172A',
+    lightTextSecondary: '#64748B',
+    offWhiteText: 'rgba(255,255,255,0.8)',
 
     // Neutrals - Dark
-    black: '#0F172A', // Slate 900
-    darkBackground: '#0B1120', // Very dark slate/blue
-    darkSurface: '#1E293B', // Slate 800
-    darkBorder: '#334155', // Slate 700
-    darkText: '#F8FAFC', // Slate 50
-    darkTextSecondary: '#94A3B8', // Slate 400
+    black: '#0F172A',
+    darkBackground: '#0B1120',
+    darkSurface: '#1E293B',
+    darkBorder: '#334155',
+    darkText: '#F8FAFC',
+    darkTextSecondary: '#94A3B8',
+    darkTextSecondaryOpacity: 'rgba(0,0,0,0.5)',
 
     // Functional
-    error: '#EF4444', // Red 500
-    warning: '#F59E0B', // Amber 500
-    success: '#10B981', // Emerald 500
-    info: '#3B82F6', // Blue 500
+    error: '#EF4444',
+    warning: '#F59E0B',
+    success: '#10B981',
+    info: '#3B82F6',
 };
 
 export const lightColors = {
@@ -48,7 +50,10 @@ export const lightColors = {
     warning: palette.warning,
     info: palette.info,
     card: palette.white,
+    offWhiteText: palette.offWhiteText,
+    darkTextSecondaryOpacity: palette.darkTextSecondaryOpacity,
     transparent: 'transparent',
+    disabled: '#CBD5E1',
 };
 
 export const darkColors = {
@@ -70,6 +75,9 @@ export const darkColors = {
     card: palette.darkSurface,
     overlay: 'rgba(0, 0, 0, 0.7)',
     transparent: 'transparent',
+    disabled: '#334155',
+    offWhiteText: palette.white,
+    darkTextSecondaryOpacity: palette.white,
 };
 
 export type Colors = typeof lightColors;

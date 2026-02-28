@@ -9,7 +9,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchCategories } from '../store/slices/catalogSlice';
-import { ThemeText, ThemedSafeAreaView, Loading, CategorySection } from '../components';
+import { ThemeText, ThemedSafeAreaView, Loading, CategorySection, BannerSection, OfferSection } from '../components';
 import { useTheme } from '../context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -61,25 +61,15 @@ export const Home: React.FC = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-                {/* Category Section */}
-                <CategorySection categories={categories} size="large" />
+                {/* Banner & Promo Section */}
+                <BannerSection />
 
-                {/* Promo Card */}
-                {/* <Card style={styles.promoCard}>
-                    <View style={styles.promoContent}>
-                        <ThemeText style={styles.promoTitle}>Fresh Bakery</ThemeText>
-                        <ThemeText style={styles.promoDesc}>Get 20% off on all cakes today!</ThemeText>
-                        <TouchableOpacity
-                            style={[styles.promoButton, { backgroundColor: '#FFF' }]}
-                            onPress={() => navigation.navigate('CategoryDetail', {
-                                categoryId: 1,
-                                categoryName: 'Bakery'
-                            })}
-                        >
-                            <ThemeText style={{ color: colors.primary, fontWeight: 'bold' }}>Order Now</ThemeText>
-                        </TouchableOpacity>
-                    </View>
-                </Card> */}
+                {/* Special Offers Section */}
+                <OfferSection />
+
+                {/* Category Section */}
+                <CategorySection categories={categories} />
+
             </ScrollView>
         </ThemedSafeAreaView>
     );
@@ -113,32 +103,5 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginTop: 4,
-    },
-    promoCard: {
-        margin: 20,
-        backgroundColor: '#FF004D',
-        borderRadius: 20,
-        padding: 20,
-    },
-    promoContent: {
-        justifyContent: 'center',
-    },
-    promoTitle: {
-        color: '#FFF',
-        fontSize: 22,
-        fontWeight: 'bold',
-    },
-    promoDesc: {
-        color: '#FFF',
-        fontSize: 14,
-        marginTop: 4,
-        opacity: 0.9,
-    },
-    promoButton: {
-        marginTop: 15,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 10,
-        alignSelf: 'flex-start',
     },
 });

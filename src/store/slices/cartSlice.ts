@@ -64,7 +64,6 @@ const cartSlice = createSlice({
             })
             .addCase(fetchCart.fulfilled, (state, action) => {
                 state.loading = false;
-                // Correctly map the product_ids array from the userCart object
                 state.items = action.payload?.userCart?.product_ids || [];
             })
             .addCase(fetchCart.rejected, (state, action) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     StyleSheet,
@@ -6,44 +6,33 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
-    Alert,
-    ToastAndroid,
     ImageBackground,
     Dimensions,
     StatusBar,
+    ToastAndroid,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/navigation';
 import { useTheme } from '../context';
 import { ThemeText, Button, Input } from '../components';
-import { useAppDispatch, useAppSelector } from '../hooks';
-import { register } from '../store/slices/authSlice';
-import { validateForm, registerFields } from '../utils/validators';
+import { validateForm, forgotPasswordFields } from '../utils/validators';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width, height } = Dimensions.get('window');
 
-type RegisterScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
+type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
 
-interface RegisterScreenProps {
-    navigation: RegisterScreenNavigationProp;
+interface ForgotPasswordScreenProps {
+    navigation: ForgotPasswordScreenNavigationProp;
 }
 
-const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
+const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
     const [formValues, setFormValues] = useState<Record<string, string>>({
         email: '',
-        phone_number: '',
-        dob: '',
-        location: '',
-        password: '',
     });
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-    const [agreed, setAgreed] = useState(false);
-
-    const dispatch = useAppDispatch();
-    const { loading, } = useAppSelector((state) => state.auth);
+    const [loading, setLoading] = useState(false);
     const { colors } = useTheme();
-
 
     const handleFieldChange = (name: string, value: string) => {
         setFormValues(prev => ({ ...prev, [name]: value }));
@@ -53,38 +42,25 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     };
 
     const validate = () => {
-        const errors = validateForm(formValues, registerFields);
+        const errors = validateForm(formValues, forgotPasswordFields);
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
-    const handleRegister = async () => {
+    const handleResetPassword = async () => {
         if (!validate()) {
             return;
         }
-        if (!agreed) {
-            Alert.alert('Terms & Conditions', 'Please agree to the terms and conditions to continue.');
-            return;
-        }
-        dispatch(register({
-            phone_number: formValues.phone_number,
-            email: formValues.email,
-            password: formValues.password,
-            dob: formValues.dob,
-            location: formValues.location,
-        }))
-            .unwrap()
-            .then((data) => {
-                if (Platform.OS === 'android') {
-                    const detail = data.user ? ` (${data.user.email})` : '';
-                    ToastAndroid.show(`${data.message}${detail}`, ToastAndroid.SHORT);
-                }
-            })
-            .catch((error) => {
-                if (Platform.OS === 'android') {
-                    ToastAndroid.show(error || 'Registration Failed', ToastAndroid.LONG);
-                }
-            });
+
+        setLoading(true);
+        // Simulate API call
+        setTimeout(() => {
+            setLoading(false);
+            if (Platform.OS === 'android') {
+                ToastAndroid.show('Reset link sent to your email', ToastAndroid.LONG);
+            }
+            navigation.navigate('Login');
+        }, 2000);
     };
 
     return (
@@ -116,21 +92,21 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                         <View style={styles.headerContent}>
                             <View style={styles.appLogoContainer}>
                                 <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
-                                    <Ionicons name="cart" size={30} color="#fff" />
+                                    <Ionicons name="key" size={30} color="#fff" />
                                 </View>
                                 <ThemeText style={[styles.appName, { color: colors.surface }]}>ZippOrder</ThemeText>
                             </View>
 
                             <View style={styles.welcomeContainer}>
-                                <ThemeText style={[styles.welcomeTitle, { color: colors.surface }]}>Register Account</ThemeText>
-                                <ThemeText style={[styles.welcomeSubtitle, { color: colors.offWhiteText }]}>Register to get started and enjoy shopping with us!</ThemeText>
+                                <ThemeText style={[styles.welcomeTitle, { color: colors.surface }]}>Forgot Password?</ThemeText>
+                                <ThemeText style={[styles.welcomeSubtitle, { color: colors.offWhiteText }]}>Enter your email to reset your password</ThemeText>
                             </View>
                         </View>
                     </ImageBackground>
 
                     <View style={[styles.formCard, { backgroundColor: colors.surface }]}>
                         <View style={styles.form}>
-                            {registerFields.map((field) => (
+                            {forgotPasswordFields.map((field) => (
                                 <Input
                                     key={field.name}
                                     label={field.label}
@@ -139,38 +115,46 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                                     value={formValues[field.name]}
                                     onChangeText={(val) => handleFieldChange(field.name, val)}
                                     error={formErrors[field.name]}
-                                    secureTextEntry={field.type === 'password'}
                                     autoCapitalize={field.autoCapitalize}
-                                    keyboardType={field.type === 'number' ? 'phone-pad' : (field.type === 'email' ? 'email-address' : 'default')}
-                                    maxLength={field.name === 'phone_number' ? 10 : (field.name === 'dob' ? 10 : undefined)}
+                                    secureTextEntry={field.type === 'password'}
+                                    keyboardType={field.type === 'email' ? 'email-address' : 'default'}
                                     leftIcon={<Ionicons name={field.icon as any} size={20} color={colors.textSecondary} />}
-                                    containerStyle={styles.inputSpacing}
+                                    containerStyle={styles.inputContainer}
                                 />
                             ))}
 
-                            {/* <TouchableOpacity
-                                style={styles.agreeContainer}
-                                onPress={() => setAgreed(!agreed)}
-                            >
-                                <Ionicons
-                                    name={agreed ? "checkbox" : "square-outline"}
-                                    size={22}
-                                    color={agreed ? colors.primary : colors.textSecondary}
-                                />
-                                <ThemeText style={styles.agreeText}>
-                                    I agree to the <ThemeText style={{ color: colors.primary, fontWeight: 'bold' }}>Terms & Conditions</ThemeText>
-                                </ThemeText>
-                            </TouchableOpacity> */}
-
                             <Button
-                                title={loading ? "Registering..." : "Register"}
-                                onPress={handleRegister}
-                                disabled={loading}
-                                style={styles.registerButton}
+                                title={loading ? "Sending..." : "Send Reset Link"}
+                                onPress={handleResetPassword}
+                                loading={loading}
+                                style={styles.resetButton}
                             />
 
+                            <View style={[styles.dividerFull, { backgroundColor: colors.border }]} />
+
+                            <View style={styles.featuresSection}>
+                                <View style={styles.featureItem}>
+                                    <View style={[styles.featureIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                                        <Ionicons name="shield-checkmark" size={22} color={colors.primary} />
+                                    </View>
+                                    <ThemeText style={styles.featureText}>Secure</ThemeText>
+                                </View>
+                                <View style={styles.featureItem}>
+                                    <View style={[styles.featureIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                                        <Ionicons name="flash" size={22} color={colors.primary} />
+                                    </View>
+                                    <ThemeText style={styles.featureText}>Fast</ThemeText>
+                                </View>
+                                <View style={styles.featureItem}>
+                                    <View style={[styles.featureIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                                        <Ionicons name="headset" size={22} color={colors.primary} />
+                                    </View>
+                                    <ThemeText style={styles.featureText}>Support</ThemeText>
+                                </View>
+                            </View>
+
                             <View style={styles.footer}>
-                                <ThemeText style={[styles.footerText, { color: colors.textSecondary }]}>Already have an account? </ThemeText>
+                                <ThemeText style={[styles.footerText, { color: colors.textSecondary }]}>Remembered your password? </ThemeText>
                                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                                     <ThemeText style={[styles.footerLink, { color: colors.primary }]}>Login</ThemeText>
                                 </TouchableOpacity>
@@ -185,6 +169,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
+    },
+    keyboardView: {
         flex: 1,
     },
     scrollContent: {
@@ -217,9 +204,9 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     logoIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 10,
+        width: 45,
+        height: 45,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 10,
@@ -234,10 +221,11 @@ const styles = StyleSheet.create({
     welcomeTitle: {
         fontSize: 26,
         fontWeight: 'bold',
-        marginBottom: 6,
+        marginBottom: 8,
     },
     welcomeSubtitle: {
-        fontSize: 14,
+        fontSize: 16,
+        textAlign: 'center',
     },
     formCard: {
         flex: 1,
@@ -245,7 +233,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         paddingHorizontal: 24,
-        paddingTop: 30,
+        paddingTop: 40,
         paddingBottom: 40,
         shadowColor: "#000",
         shadowOffset: {
@@ -256,31 +244,50 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
         elevation: 10,
     },
-    keyboardView: {
-        flex: 1,
-    },
     form: {
         width: '100%',
     },
-    inputSpacing: {
-        marginBottom: 16,
+    inputContainer: {
+        marginBottom: 15,
     },
-    agreeContainer: {
+    resetButton: {
+        marginBottom: 15,
+    },
+    dividerFull: {
+        height: 1,
+        width: '100%',
+        marginTop: 10,
+        opacity: 0.5,
+    },
+    featuresSection: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 30,
+        paddingHorizontal: 10,
+    },
+    featureItem: {
         alignItems: 'center',
-        marginVertical: 10,
+        flex: 1,
     },
-    agreeText: {
-        marginLeft: 10,
-        fontSize: 14,
+    featureIconContainer: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 8,
     },
-    registerButton: {
-        marginVertical: 10,
+    featureText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: 'rgba(0,0,0,0.5)',
+        textAlign: 'center',
     },
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: 10,
+        marginTop: 40,
+        marginBottom: 10,
     },
     footerText: {
         fontSize: 15,
@@ -291,4 +298,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default RegisterScreen;
+export default ForgotPasswordScreen;

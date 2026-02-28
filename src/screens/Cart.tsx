@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     StyleSheet,
@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchCart, addToCart, removeFromCart } from '../store/slices/cartSlice';
-import { ThemeText, ThemedSafeAreaView } from '../components';
+import { Header, ThemeText, ThemedSafeAreaView } from '../components';
 import { useTheme } from '../context';
 import { formatImageUrl } from '../utils';
 import InputSpinner from 'react-native-input-spinner';
@@ -20,6 +20,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
+import api from '../utils/api';
 
 
 const CartScreen: React.FC = () => {
@@ -29,6 +30,7 @@ const CartScreen: React.FC = () => {
     const { user } = useAppSelector((state) => state.auth);
     const { products } = useAppSelector((state) => state.catalog);
     const { colors } = useTheme();
+    const [cartData, setCartData] = useState([]);
 
     const enrichedItems = React.useMemo(() => {
         if (!Array.isArray(items)) return [];
@@ -160,23 +162,27 @@ const CartScreen: React.FC = () => {
         );
     }
 
-    console.log('🛒 CART SCREEN DATA:', {
-        redux_itemsCount: items?.length,
-        enrichedItemsCount: enrichedItems?.length,
-        items: JSON.stringify(items),
-        catalogProductCount: products?.length
-    });
 
+    const mycartdetails = async () => {
+        try {
+            const response = await api.get('https://backend-dev.zipporder.com/cart/get');
+            console.log('🛒 CART SCREEN DATA:', response.data.userCart.items);
+            setCartData(response.data.userCart.items);
+        } catch (error) {
+            console.error('Error fetching cart details:', error);
+        }
+    }
+
+    useEffect(() => {
+        mycartdetails();
+    }, []);
 
     return (
         <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <ThemeText style={styles.title}>Your Cart</ThemeText>
-                <View style={{ width: 24 }} />
-            </View>
+            <Header
+                title="Your Cart"
+                onBack={() => navigation.goBack()}
+            />
 
             {(!items || items.length === 0) ? (
                 <ScrollView

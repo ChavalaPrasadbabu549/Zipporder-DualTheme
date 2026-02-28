@@ -6,10 +6,16 @@ const ThemeText: React.FC<TextProps> = ({ style, children, ...props }) => {
     const { colors } = useTheme();
 
     return (
-        <RNText style={[{ color: colors.text }, style]} {...props}>
+        <RNText style={[styles.text, { color: colors.text }, style]} {...props}>
             {children}
         </RNText>
     );
 };
+
+const styles = StyleSheet.create({
+    text: {
+        fontFamily: 'Inter-Regular',
+    },
+});
 
 export default ThemeText;

@@ -1,37 +1,56 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     View,
     StyleSheet,
     FlatList,
     Image,
     TouchableOpacity,
-    Dimensions,
     ActivityIndicator,
     ScrollView,
-    TextInput
+    RefreshControl,
+    Dimensions
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchCategories, fetchSubCategories, fetchProducts } from '../store/slices/catalogSlice';
-import { ThemeText, ThemedSafeAreaView, Card, ProductCard } from '../components';
+import { ThemeText, ThemedSafeAreaView, ProductCard, Header } from '../components';
 import { useTheme } from '../context';
 import { Category, SubCategory, Product } from '../utils/types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { formatImageUrl } from '../utils';
 
+const { width } = Dimensions.get('window');
 const SIDEBAR_WIDTH = 90;
+const MAIN_PADDING = 16;
+const mainContentWidth = width - SIDEBAR_WIDTH - (MAIN_PADDING * 2);
+const CARD_WIDTH = mainContentWidth;
 type Props = any;
-
 const AllCategoriesScreen = ({ navigation, route }: Props) => {
     const dispatch = useAppDispatch();
     const { categories, subCategories, products, loading } = useAppSelector((state) => state.catalog);
     const { colors } = useTheme();
     const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
 
-    // Initial load and param handling
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try {
+            await dispatch(fetchCategories({})).unwrap();
+            if (selectedId !== null) {
+                await Promise.all([
+                    dispatch(fetchSubCategories(selectedId)).unwrap(),
+                    dispatch(fetchProducts({ categoryId: selectedId })).unwrap()
+                ]);
+            }
+        } catch (error) {
+            console.error('Refresh failed:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    }, [dispatch, selectedId]);
+
     useEffect(() => {
         dispatch(fetchCategories({}));
 
-        // If navigation came with a categoryId, set it
         const params = route.params as any;
         if (params?.categoryId) {
             setSelectedId(params.categoryId);
@@ -54,42 +73,58 @@ const AllCategoriesScreen = ({ navigation, route }: Props) => {
     const currentSubCategories = selectedId !== null ? subCategories[selectedId] || [] : [];
     const currentCategory = categories.find(c => c.id === selectedId);
 
-    const getCategoryIcon = (name: string) => {
-        const lowerName = name.toLowerCase();
-        if (lowerName.includes('fashion') || lowerName.includes('clothing')) return 'shirt-outline';
-        if (lowerName.includes('elect')) return 'phone-portrait-outline';
-        if (lowerName.includes('home')) return 'home-outline';
-        if (lowerName.includes('beauty')) return 'water-outline';
-        if (lowerName.includes('sport')) return 'bicycle-outline';
-        if (lowerName.includes('toy')) return 'game-controller-outline';
-        if (lowerName.includes('bake')) return 'pizza-outline';
-        if (lowerName.includes('grocery')) return 'basket-outline';
-        return 'apps-outline';
-    };
-
     const renderSidebarItem = ({ item }: { item: Category }) => {
         const isSelected = selectedId === item.id;
+        const imageUrl = formatImageUrl(item.image);
+
         return (
             <TouchableOpacity
                 style={[
                     styles.sidebarItem,
-                    isSelected && { backgroundColor: colors.background }
+                    { backgroundColor: isSelected ? colors.surface : 'transparent' }
                 ]}
                 onPress={() => setSelectedId(item.id)}
+                activeOpacity={0.7}
             >
-                {isSelected && <View style={[styles.activeIndicator, { backgroundColor: colors.primary }]} />}
-                <View style={[styles.iconContainer, isSelected && { backgroundColor: colors.primary + '10' }]}>
-                    <Ionicons
-                        name={getCategoryIcon(item.name)}
-                        size={24}
-                        color={isSelected ? colors.primary : colors.textSecondary}
-                    />
-                </View>
-                <ThemeText style={[
-                    styles.sidebarLabel,
-                    { color: isSelected ? colors.primary : colors.textSecondary, fontWeight: isSelected ? '700' : '500' }
+                {isSelected && (
+                    <View style={[styles.activeIndicator, { backgroundColor: colors.primary }]} />
+                )}
+
+                <View style={[
+                    styles.iconContainer,
+                    { backgroundColor: isSelected ? colors.primary + '10' : colors.surface },
+                    { borderColor: isSelected ? colors.primary : colors.border },
+                    { borderWidth: isSelected ? 2 : 1 }
                 ]}>
-                    {item.name.toUpperCase()}
+                    {imageUrl ? (
+                        <Image
+                            source={{ uri: imageUrl }}
+                            style={[
+                                styles.sidebarImage,
+                                isSelected ? { opacity: 1 } : { opacity: 0.6 }
+                            ]}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <Ionicons
+                            name="apps-outline"
+                            size={20}
+                            color={isSelected ? '#FFF' : colors.textSecondary}
+                        />
+                    )}
+                </View>
+
+                <ThemeText
+                    style={[
+                        styles.sidebarLabel,
+                        {
+                            color: isSelected ? colors.primary : colors.textSecondary,
+                            fontWeight: isSelected ? '800' : '500',
+                        }
+                    ]}
+                    numberOfLines={2}
+                >
+                    {item.name}
                 </ThemeText>
             </TouchableOpacity>
         );
@@ -97,7 +132,7 @@ const AllCategoriesScreen = ({ navigation, route }: Props) => {
 
     const renderSubCategory = ({ item }: { item: SubCategory }) => (
         <TouchableOpacity
-            style={styles.subCategoryItem}
+            style={[styles.subCategoryCard, { backgroundColor: colors.surface }]}
             onPress={() => navigation.navigate('CategoryDetail', {
                 categoryId: selectedId!,
                 categoryName: currentCategory?.name || ''
@@ -110,40 +145,20 @@ const AllCategoriesScreen = ({ navigation, route }: Props) => {
                     <Ionicons name="image-outline" size={20} color={colors.textSecondary} />
                 )}
             </View>
-            <ThemeText style={styles.subCategoryName} numberOfLines={1}>{item.name}</ThemeText>
+            <ThemeText style={[styles.subCategoryName, { color: colors.text }]} numberOfLines={1}>{item.name}</ThemeText>
         </TouchableOpacity>
     );
 
     const renderProductItem = ({ item }: { item: Product }) => (
-        <ProductCard product={item} />
+        <ProductCard product={item} width={CARD_WIDTH} />
     );
 
     return (
         <ThemedSafeAreaView style={styles.container}>
-            {/* Header with Search and Back */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Ionicons name="search-outline" size={20} color={colors.textSecondary} />
-                    <TextInput
-                        placeholder={`Search ${currentCategory?.name || 'products'}...`}
-                        placeholderTextColor={colors.textSecondary}
-                        style={[styles.searchInput, { color: colors.text }]}
-                    />
-                </View>
-                <TouchableOpacity style={styles.cartHeaderButton}>
-                    <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-                        <ThemeText style={styles.badgeText}>3</ThemeText>
-                    </View>
-                    <Ionicons name="cart-outline" size={24} color={colors.text} />
-                </TouchableOpacity>
-            </View>
+            <Header title="All Categories" />
 
             <View style={styles.content}>
-                {/* Left Sidebar */}
-                <View style={[styles.sidebar, { borderRightColor: colors.border }]}>
+                <View style={[styles.sidebar, { borderRightColor: colors.border, backgroundColor: colors.surface + '40' }]}>
                     <FlatList
                         data={categories}
                         renderItem={renderSidebarItem}
@@ -153,21 +168,27 @@ const AllCategoriesScreen = ({ navigation, route }: Props) => {
                     />
                 </View>
 
-                {/* Right Content Area */}
                 <ScrollView
-                    style={styles.mainArea}
+                    style={[styles.mainArea, { backgroundColor: colors.background }]}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.mainScrollContent}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={[colors.primary]}
+                            tintColor={colors.primary}
+                        />
+                    }
                 >
                     <View style={styles.mainHeader}>
-                        <ThemeText style={styles.browseTitle}>Browse {currentCategory?.name}</ThemeText>
+                        <ThemeText style={[styles.browseTitle, { color: colors.text }]}>Browse {currentCategory?.name}</ThemeText>
                     </View>
 
-                    {/* Subcategories */}
                     {currentSubCategories.length > 0 && (
                         <View style={styles.section}>
                             <View style={styles.sectionHeader}>
-                                <ThemeText style={styles.sectionTitle}>Shop Categories</ThemeText>
+                                <ThemeText style={[styles.sectionTitle, { color: colors.text }]}>Shop Categories</ThemeText>
                             </View>
                             <FlatList
                                 data={currentSubCategories}
@@ -180,15 +201,14 @@ const AllCategoriesScreen = ({ navigation, route }: Props) => {
                         </View>
                     )}
 
-                    {/* Products */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <ThemeText style={styles.sectionTitle}>Featured Products</ThemeText>
+                            <ThemeText style={styles.sectionTitle}>Products</ThemeText>
                             <TouchableOpacity onPress={() => navigation.navigate('CategoryDetail', {
                                 categoryId: selectedId!,
                                 categoryName: currentCategory?.name || ''
                             })}>
-                                <ThemeText style={{ color: colors.primary, fontSize: 13 }}>See all</ThemeText>
+                                {/* <ThemeText style={{ color: colors.primary, fontSize: 13 }}>See all</ThemeText> */}
                             </TouchableOpacity>
                         </View>
 
@@ -217,59 +237,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        gap: 12,
-    },
-    backButton: {
-        padding: 4,
-    },
-    searchContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-        height: 40,
-        borderRadius: 10,
-        borderWidth: 1,
-    },
-    searchInput: {
-        flex: 1,
-        marginLeft: 8,
-        fontSize: 14,
-        padding: 0,
-    },
-    cartHeaderButton: {
-        padding: 4,
-        position: 'relative',
-    },
-    badge: {
-        position: 'absolute',
-        top: -2,
-        right: -2,
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1,
-    },
-    badgeText: {
-        color: '#FFF',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
     content: {
         flex: 1,
         flexDirection: 'row',
     },
-    // Sidebar Styles
     sidebar: {
         width: SIDEBAR_WIDTH,
-        backgroundColor: '#FCFCFC',
         borderRightWidth: 1,
     },
     sidebarList: {
@@ -284,41 +257,46 @@ const styles = StyleSheet.create({
     },
     activeIndicator: {
         position: 'absolute',
-        left: 0,
-        top: '25%',
-        bottom: '25%',
-        width: 4,
-        borderTopRightRadius: 4,
-        borderBottomRightRadius: 4,
+        left: 3,
+        top: '20%',
+        bottom: '20%',
+        width: 3,
+        borderRadius: 10,
     },
     iconContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 8,
+        overflow: 'hidden',
+    },
+    sidebarImage: {
+        width: '100%',
+        height: '100%',
     },
     sidebarLabel: {
-        fontSize: 9,
+        fontSize: 10,
         textAlign: 'center',
         paddingHorizontal: 4,
         letterSpacing: 0.5,
+        textTransform: 'capitalize',
+        fontFamily: 'Inter-Medium',
     },
-    // Main Area Styles
     mainArea: {
         flex: 1,
-        backgroundColor: '#FFF',
     },
     mainScrollContent: {
-        padding: 16,
+        padding: MAIN_PADDING,
     },
     mainHeader: {
         marginBottom: 20,
     },
     browseTitle: {
-        fontSize: 22,
+        fontSize: 18,
         fontWeight: '700',
+        fontFamily: 'Inter-Bold',
     },
     section: {
         marginBottom: 24,
@@ -330,15 +308,16 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     sectionTitle: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '700',
+        fontFamily: 'Inter-Bold',
     },
     subListContent: {
         gap: 16,
     },
-    subCategoryItem: {
+    subCategoryCard: {
         alignItems: 'center',
-        width: 70,
+        width: 80,
     },
     subCategoryImageContainer: {
         width: 60,
@@ -356,8 +335,9 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     subCategoryName: {
-        fontSize: 11,
+        fontSize: 10,
         textAlign: 'center',
+        fontFamily: 'Inter-Medium',
     },
     emptyText: {
         textAlign: 'center',
@@ -369,7 +349,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        gap: 12,
+        rowGap: 16,
     },
 });
 

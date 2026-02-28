@@ -21,20 +21,16 @@ import { validateForm, loginFields } from '../utils/validators';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width, height } = Dimensions.get('window');
-
 type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
-
 interface LoginScreenProps {
     navigation: LoginScreenNavigationProp;
 }
-
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const [formValues, setFormValues] = useState<Record<string, string>>({
         email: '',
         password: '',
     });
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-
     const dispatch = useAppDispatch();
     const { loading } = useAppSelector((state) => state.auth);
     const { colors } = useTheme();
@@ -58,9 +54,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         }
         dispatch(login({ email: formValues.email, password: formValues.password }))
             .unwrap()
-            .then(() => {
+            .then((data) => {
                 if (Platform.OS === 'android') {
-                    ToastAndroid.show('Login Successful!', ToastAndroid.SHORT);
+                    const detail = data.user ? ` (${data.user.email})` : '';
+                    ToastAndroid.show(`${data.message}${detail}`, ToastAndroid.SHORT);
+                }
+            })
+            .catch((error) => {
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(error || 'Login Failed', ToastAndroid.LONG);
                 }
             });
     };
@@ -68,41 +70,44 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-            <ScrollView
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-                bounces={false}
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.keyboardView}
             >
-                <ImageBackground
-                    source={require('../asssets/auth_bg.png')}
-                    style={styles.headerBackground}
-                    resizeMode="cover"
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
+                    keyboardShouldPersistTaps="handled"
                 >
-                    <View style={styles.overlay} />
-                    <View style={styles.headerContent}>
-                        <View style={styles.appLogoContainer}>
-                            <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
-                                <Ionicons name="cart" size={30} color="#fff" />
-                            </View>
-                            <ThemeText style={styles.appName}>ZippOrder</ThemeText>
-                        </View>
-
-                        <View style={styles.welcomeContainer}>
-                            <ThemeText style={styles.welcomeTitle}>Welcome Back 👋</ThemeText>
-                            <ThemeText style={styles.welcomeSubtitle}>Login to continue shopping</ThemeText>
-                        </View>
-                    </View>
-                </ImageBackground>
-
-                <View style={[styles.formCard, { backgroundColor: colors.surface }]}>
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                        style={styles.keyboardView}
+                    <ImageBackground
+                        source={require('../asssets/auth_bg.png')}
+                        style={styles.headerBackground}
+                        resizeMode="cover"
                     >
+                        <View style={styles.overlay} />
+                        <View style={styles.headerContent}>
+                            <View style={styles.appLogoContainer}>
+                                <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
+                                    <Ionicons name="cart" size={30} color="#fff" />
+                                </View>
+                                <ThemeText style={[styles.appName, { color: colors.surface }]}>ZippOrder</ThemeText>
+                            </View>
+
+                            <View style={styles.welcomeContainer}>
+                                <ThemeText style={[styles.welcomeTitle, { color: colors.surface }]}>Welcome Back 👋</ThemeText>
+                                <ThemeText style={[styles.welcomeSubtitle, { color: colors.offWhiteText }]}>Login to continue shopping and get exciting offers</ThemeText>
+                            </View>
+                        </View>
+                    </ImageBackground>
+
+                    <View style={[styles.formCard, { backgroundColor: colors.surface }]}>
                         <View style={styles.form}>
                             {loginFields.map((field) => (
                                 <Input
                                     key={field.name}
+                                    label={field.label}
+                                    required={field.required}
                                     placeholder={field.placeholder}
                                     value={formValues[field.name]}
                                     onChangeText={(val) => handleFieldChange(field.name, val)}
@@ -117,28 +122,51 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
                             <TouchableOpacity
                                 style={styles.forgotPassword}
-                                onPress={() => navigation.navigate('ForgotPassword' as any)}
+                                onPress={() => navigation.navigate('ForgotPassword')}
                             >
                                 <ThemeText style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</ThemeText>
                             </TouchableOpacity>
 
                             <Button
-                                title={loading ? "Logging in..." : "Login"}
+                                title="Login"
                                 onPress={handleLogin}
-                                disabled={loading}
+                                loading={loading}
                                 style={styles.loginButton}
                             />
 
+                            <View style={[styles.dividerFull, { backgroundColor: colors.border }]} />
+
+                            <View style={styles.featuresSection}>
+                                <View style={styles.featureItem}>
+                                    <View style={[styles.featureIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                                        <Ionicons name="shield-checkmark" size={22} color={colors.primary} />
+                                    </View>
+                                    <ThemeText style={[styles.featureText, { color: colors.darkTextSecondaryOpacity }]}>Secure</ThemeText>
+                                </View>
+                                <View style={styles.featureItem}>
+                                    <View style={[styles.featureIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                                        <Ionicons name="flash" size={22} color={colors.primary} />
+                                    </View>
+                                    <ThemeText style={[styles.featureText, { color: colors.darkTextSecondaryOpacity }]}>Fast</ThemeText>
+                                </View>
+                                <View style={styles.featureItem}>
+                                    <View style={[styles.featureIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                                        <Ionicons name="headset" size={22} color={colors.primary} />
+                                    </View>
+                                    <ThemeText style={[styles.featureText, { color: colors.darkTextSecondaryOpacity }]}>Support</ThemeText>
+                                </View>
+                            </View>
+
                             <View style={styles.footer}>
-                                <ThemeText style={[styles.footerText, { color: colors.textSecondary }]}>New user? </ThemeText>
+                                <ThemeText style={[styles.footerText, { color: colors.textSecondary }]}>Don't have an account? </ThemeText>
                                 <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                                    <ThemeText style={[styles.footerLink, { color: colors.primary }]}>Create Account</ThemeText>
+                                    <ThemeText style={[styles.footerLink, { color: colors.primary }]}>Register</ThemeText>
                                 </TouchableOpacity>
                             </View>
                         </View>
-                    </KeyboardAvoidingView>
-                </View>
-            </ScrollView>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 };
@@ -179,9 +207,8 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     appName: {
-        fontSize: 28,
+        fontSize: 24,
         fontWeight: 'bold',
-        color: '#fff',
     },
     welcomeContainer: {
         alignItems: 'center',
@@ -189,12 +216,11 @@ const styles = StyleSheet.create({
     welcomeTitle: {
         fontSize: 26,
         fontWeight: 'bold',
-        color: '#fff',
         marginBottom: 8,
     },
     welcomeSubtitle: {
         fontSize: 16,
-        color: 'rgba(255,255,255,0.8)',
+        textAlign: 'center',
     },
     formCard: {
         flex: 1,
@@ -218,7 +244,7 @@ const styles = StyleSheet.create({
     },
     form: {
         width: '100%',
-        marginTop: 100,
+        marginTop: 20,
     },
     inputContainer: {
         marginBottom: 16,
@@ -234,17 +260,47 @@ const styles = StyleSheet.create({
     loginButton: {
         marginBottom: 24,
     },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 20,
-    },
     footerText: {
         fontSize: 15,
     },
     footerLink: {
         fontSize: 15,
         fontWeight: 'bold',
+    },
+    dividerFull: {
+        height: 1,
+        width: '100%',
+        marginTop: 10,
+        opacity: 0.5,
+    },
+    featuresSection: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 30,
+        paddingHorizontal: 10,
+    },
+    featureItem: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    featureIconContainer: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 8,
+    },
+    featureText: {
+        fontSize: 12,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: 40,
+        marginBottom: 10,
     },
 });
 

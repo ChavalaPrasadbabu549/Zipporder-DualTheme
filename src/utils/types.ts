@@ -40,6 +40,7 @@ export interface ButtonProps {
     title: string;
     onPress: () => void;
     variant?: 'primary' | 'secondary' | 'outline';
+    loading?: boolean;
     disabled?: boolean;
     style?: ViewStyle;
     textStyle?: TextStyle;
@@ -93,12 +94,7 @@ export interface Category {
     updated_at: string;
     subcategory_count: number;
 }
-// CategoryCard Interface
-export interface CategoryCardProps {
-    category: Category;
-    onPress: () => void;
-    size?: 'small' | 'large';
-}
+
 // SubCategory Interface
 export interface SubCategory {
     id: number;
@@ -151,12 +147,13 @@ export interface AuthState {
     loading: boolean;
     error: string | null;
     isAuthenticated: boolean;
+    userCart?: any;
 }
 
 // === Product State ===
 export interface CatalogState {
     categories: Category[];
-    subCategories: Record<number, SubCategory[]>;
+    subCategories: Record<number | string, SubCategory[]>;
     products: Product[];
     loading: boolean;
     error: string | null;
@@ -190,6 +187,7 @@ export const initialAuthState: AuthState = {
     loading: true,
     error: null,
     isAuthenticated: false,
+    userCart: null,
 };
 
 export const initialCatalogState: CatalogState = {
@@ -218,10 +216,69 @@ export interface ThemedSafeAreaViewProps {
 }
 
 // === Order ===
+export type OrderStatus = 'preparing' | 'on_the_way' | 'delivered' | 'cancelled';
+
+export interface OrderItem {
+    id: number;
+    name: string;
+    image: string;
+    quantity: number;
+    price: number;
+}
+
 export interface Order {
     id: string;
-    title: string;
+    orderNumber: string;
     date: string;
-    status: 'pending' | 'delivered' | 'cancelled';
-    amount: string;
+    status: 'preparing' | 'on_the_way' | 'delivered' | 'cancelled';
+    totalAmount: number;
+    items: OrderItem[];
+    deliveryAddress?: string;
+}
+// BannerItem Interface
+export interface BannerItemProps {
+    id: string;
+    imageUrl: string;
+    isVideo?: boolean;
+    title: string;
+}
+
+// OfferCard Interface
+export interface OfferCardProps {
+    offer: {
+        id: string;
+        title: string;
+        subtitle: string;
+        color: string;
+        image: string;
+    };
+}
+
+// === Tabs Interfaces ===
+export interface TabOption {
+    label: string;
+    value: string;
+}
+// SegmentedTabs Interface
+export interface SegmentedTabsProps {
+    options: TabOption[];
+    activeTab: string;
+    onTabChange: (value: string) => void;
+    containerStyle?: ViewStyle;
+}
+
+// ProductCard Interface
+export interface ProductCardProps {
+    product: Product;
+    width?: number;
+    hideWishlistButton?: boolean;
+}
+
+// Header Interface
+export interface HeaderProps {
+    title: string;
+    subtitle?: string;
+    showBackButton?: boolean;
+    onBack?: () => void;
+    rightComponent?: React.ReactNode;
 }

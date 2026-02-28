@@ -5,15 +5,15 @@ import {
     FlatList,
     Image,
     TouchableOpacity,
-    Dimensions
+    Dimensions,
+    ScrollView
 } from 'react-native';
 import { useAppSelector, useAppDispatch } from '../hooks';
 import { toggleWishlist } from '../store/slices/wishlistSlice';
-import { ThemeText, ThemedSafeAreaView, Card } from '../components';
+import { ThemeText, ThemedSafeAreaView, ProductCard, Header } from '../components';
 import { useTheme } from '../context';
 import { Product } from '../utils/types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { formatImageUrl } from '../utils';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
@@ -26,74 +26,68 @@ export const WishlistScreen: React.FC = () => {
     const { colors } = useTheme();
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-    const renderItem = ({ item }: { item: Product }) => {
-        const imageUrl = formatImageUrl(item.images);
-        return (
-            <Card style={styles.card}>
-                <TouchableOpacity
-                    style={styles.content}
-                    onPress={() => navigation.navigate('ProductDetail', { productId: item.id })}
-                >
-                    <View style={[styles.imageContainer, { backgroundColor: colors.surface }]}>
-                        {imageUrl ? (
-                            <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="contain" />
-                        ) : (
-                            <Ionicons name="cube-outline" size={30} color={colors.textSecondary} />
-                        )}
-                    </View>
-                    <View style={styles.info}>
-                        <ThemeText style={styles.name} numberOfLines={1}>{item.name}</ThemeText>
-                        <ThemeText style={[styles.price, { color: colors.primary }]}>₹{item.discount_price}</ThemeText>
-                        {item.price > item.discount_price && (
-                            <ThemeText style={styles.originalPrice}>₹{item.price}</ThemeText>
-                        )}
-                    </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => dispatch(toggleWishlist(item))}
-                >
-                    <Ionicons name="trash-outline" size={20} color={colors.error || '#FF3B30'} />
-                </TouchableOpacity>
-            </Card>
-        );
-    };
+    const renderItem = ({ item }: { item: Product }) => (
+        <View style={styles.gridItem}>
+            <ProductCard product={item} width={(width - 52) / 2} hideWishlistButton={true} />
+            <TouchableOpacity
+                style={[styles.removeIcon, { backgroundColor: colors.surface }]}
+                onPress={() => dispatch(toggleWishlist(item))}
+                activeOpacity={0.5}
+            >
+                <Ionicons name="close" size={20} color={colors.error || '#FF3B30'} />
+            </TouchableOpacity>
+        </View>
+    );
 
     return (
         <ThemedSafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={24} color={colors.text} />
-                </TouchableOpacity>
-                <ThemeText style={styles.headerTitle}>My Wishlist</ThemeText>
-                <View style={{ width: 40 }} />
-            </View>
+            <Header title="My Favorites" />
 
-            {items.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                    <View style={[styles.emptyIconContainer, { backgroundColor: colors.primary + '10' }]}>
-                        <Ionicons name="heart-outline" size={60} color={colors.primary} />
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Hero section */}
+                <View style={styles.heroSection}>
+                    <View style={[styles.heroCard, { backgroundColor: colors.primary }]}>
+                        <View style={styles.heroContent}>
+                            <ThemeText style={[styles.heroTitle, { color: colors.surface }]}>Your Wishlist</ThemeText>
+                            <ThemeText style={[styles.heroSubtitle, { color: colors.offWhiteText }]}>
+                                {items.length} curated products handpicked and saved in your personal collection.
+                            </ThemeText>
+                        </View>
+                        <Ionicons name="heart" size={70} color="rgba(255,255,255,0.2)" style={styles.heroIcon} />
                     </View>
-                    <ThemeText style={styles.emptyTitle}>Your Wishlist is Empty</ThemeText>
-                    <ThemeText style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                        Tap the heart icon on any product to save it for later.
-                    </ThemeText>
-                    <TouchableOpacity
-                        style={[styles.startShoppingBtn, { backgroundColor: colors.primary }]}
-                        onPress={() => navigation.navigate('Main' as any)}
-                    >
-                        <ThemeText style={styles.startShoppingText}>Start Shopping</ThemeText>
-                    </TouchableOpacity>
                 </View>
-            ) : (
-                <FlatList
-                    data={items}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.id.toString()}
-                    contentContainerStyle={styles.listContent}
-                    showsVerticalScrollIndicator={false}
-                />
-            )}
+
+                {items.length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                        <View style={[styles.emptyIconContainer, { backgroundColor: colors.primary + '10' }]}>
+                            <Ionicons name="heart-dislike-outline" size={60} color={colors.primary} />
+                        </View>
+                        <ThemeText style={styles.emptyTitle}>Nothing here yet</ThemeText>
+                        <ThemeText style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                            Start exploring and tap the heart icon to save products you love!
+                        </ThemeText>
+                        <TouchableOpacity
+                            style={[styles.startShoppingBtn, { backgroundColor: colors.primary }]}
+                            onPress={() => navigation.navigate('Main' as any)}
+                        >
+                            <ThemeText style={styles.startShoppingText}>Explore Now</ThemeText>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    <View style={styles.productsSection}>
+                        <View style={styles.sectionHeader}>
+                            <ThemeText style={styles.sectionTitle}>Saved Items</ThemeText>
+                        </View>
+                        <View style={styles.productsGrid}>
+                            {items.map((item) => (
+                                <React.Fragment key={item.id}>
+                                    {renderItem({ item })}
+                                </React.Fragment>
+                            ))}
+                        </View>
+                    </View>
+                )}
+            </ScrollView>
         </ThemedSafeAreaView>
     );
 };
@@ -102,74 +96,84 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 15,
-        paddingVertical: 15,
+    heroSection: {
+        padding: 20,
+        paddingBottom: 10,
     },
-    backButton: {
-        padding: 5,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-    },
-    listContent: {
-        padding: 15,
-    },
-    card: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        marginBottom: 12,
+    heroCard: {
+        height: 140,
         borderRadius: 15,
-    },
-    content: {
-        flex: 1,
+        padding: 25,
         flexDirection: 'row',
-        alignItems: 'center',
+        overflow: 'hidden',
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
     },
-    imageContainer: {
-        width: 70,
-        height: 70,
-        borderRadius: 12,
+    heroContent: {
+        flex: 1,
+        justifyContent: 'center',
+        zIndex: 1,
+    },
+    heroTitle: {
+        fontSize: 26,
+        fontWeight: '900',
+    },
+    heroSubtitle: {
+        fontSize: 14,
+        marginTop: 4,
+    },
+    heroIcon: {
+        position: 'absolute',
+        right: -5,
+        bottom: -10,
+    },
+    productsSection: {
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        paddingBottom: 40,
+    },
+    sectionHeader: {
+        marginBottom: 20,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: '800',
+    },
+    productsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    gridItem: {
+        width: (width - 52) / 2,
+        marginBottom: 20,
+        position: 'relative',
+    },
+    removeIcon: {
+        position: 'absolute',
+        top: -5,
+        right: 5,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 15,
-        overflow: 'hidden',
-    },
-    image: {
-        width: '80%',
-        height: '80%',
-    },
-    info: {
-        flex: 1,
-    },
-    name: {
-        fontSize: 15,
-        fontWeight: '600',
-        marginBottom: 4,
-    },
-    price: {
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    originalPrice: {
-        fontSize: 12,
-        textDecorationLine: 'line-through',
-        opacity: 0.5,
-        marginTop: 2,
-    },
-    removeButton: {
-        padding: 10,
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        zIndex: 10,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 30,
+        padding: 40,
+        marginTop: 40,
     },
     emptyIconContainer: {
         width: 120,
@@ -177,28 +181,33 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 25,
     },
     emptyTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
+        fontSize: 22,
+        fontWeight: '800',
         marginBottom: 10,
     },
     emptySubtitle: {
         fontSize: 15,
         textAlign: 'center',
         lineHeight: 22,
-        marginBottom: 30,
+        marginBottom: 35,
     },
     startShoppingBtn: {
-        paddingHorizontal: 30,
-        paddingVertical: 12,
-        borderRadius: 25,
+        paddingHorizontal: 40,
+        paddingVertical: 14,
+        borderRadius: 30,
+        elevation: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
     },
     startShoppingText: {
         color: '#FFF',
         fontSize: 16,
-        fontWeight: '700',
+        fontWeight: '900',
     },
 });
 

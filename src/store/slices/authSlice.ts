@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { AuthState, User, initialAuthState } from '../../utils/types';
+import { initialAuthState } from '../../utils/types';
 import api from '../../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -30,16 +30,16 @@ export const login = createAsyncThunk(
             const response = await api.post('/users/login', credentials);
 
             if (response.data && response.data.token && response.data.user) {
-                const { token, user } = response.data;
+                const { token, user, message } = response.data;
 
                 await AsyncStorage.setItem('token', token);
                 await AsyncStorage.setItem('user', JSON.stringify(user));
 
-                return { user, token };
+                return { user, token, message: message || 'Login Successful' };
             }
             return rejectWithValue('Invalid response from server');
         } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Login failed';
+            const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Login failed';
             return rejectWithValue(message);
         }
     }
@@ -53,7 +53,7 @@ export const register = createAsyncThunk(
             const response = await api.post('/users', userData);
 
             if (response.data && response.data.user) {
-                const { token, user, message } = response.data;
+                const { token, user, message, userCart } = response.data;
 
                 if (token) {
                     await AsyncStorage.setItem('token', token);
@@ -63,12 +63,13 @@ export const register = createAsyncThunk(
                 return {
                     user,
                     token: token || null,
-                    message: message || 'Account created successfully'
+                    message: message || 'Account created successfully',
+                    userCart: userCart || null
                 };
             }
             return rejectWithValue(response.data?.message || 'Registration failed');
         } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Registration failed';
+            const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed';
             return rejectWithValue(message);
         }
     }
@@ -130,6 +131,7 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.user = action.payload.user;
                 state.token = action.payload.token;
+                state.userCart = action.payload.userCart;
                 // Only authenticate if we have a token
                 state.isAuthenticated = !!action.payload.token;
             })

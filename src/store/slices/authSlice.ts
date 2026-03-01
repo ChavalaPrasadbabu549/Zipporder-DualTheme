@@ -50,11 +50,31 @@ export const register = createAsyncThunk(
     'auth/register',
     async (userData: any, { rejectWithValue }) => {
         try {
-            const response = await api.post('/users', userData);
+            let data = userData;
+
+            // Automatically handle FormData if an image is present as an object with uri
+            if (userData.profile_picture && typeof userData.profile_picture === 'object' && userData.profile_picture.uri) {
+                const formData = new FormData();
+                Object.keys(userData).forEach(key => {
+                    if (key === 'profile_picture') {
+                        formData.append(key, {
+                            uri: userData[key].uri,
+                            type: userData[key].type || 'image/jpeg',
+                            name: userData[key].name || `profile_${Date.now()}.jpg`,
+                        } as any);
+                    } else if (userData[key] !== null && userData[key] !== undefined) {
+                        formData.append(key, userData[key]);
+                    }
+                });
+                data = formData;
+            }
+
+            const response = await api.post('/users', data, {
+                headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {}
+            });
 
             if (response.data && response.data.user) {
                 const { token, user, message, userCart } = response.data;
-
                 if (token) {
                     await AsyncStorage.setItem('token', token);
                     await AsyncStorage.setItem('user', JSON.stringify(user));
@@ -70,6 +90,47 @@ export const register = createAsyncThunk(
             return rejectWithValue(response.data?.message || 'Registration failed');
         } catch (error: any) {
             const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed';
+            return rejectWithValue(message);
+        }
+    }
+);
+
+// updateProfile thunk using real API
+export const updateProfile = createAsyncThunk(
+    'auth/updateProfile',
+    async ({ id, userData }: { id: string | number; userData: any }, { rejectWithValue }) => {
+        try {
+            let data = userData;
+
+            // Automatically handle FormData if an image is present as an object with uri
+            if (userData.profile_picture && typeof userData.profile_picture === 'object' && userData.profile_picture.uri) {
+                const formData = new FormData();
+                Object.keys(userData).forEach(key => {
+                    if (key === 'profile_picture') {
+                        formData.append(key, {
+                            uri: userData[key].uri,
+                            type: userData[key].type || 'image/jpeg',
+                            name: userData[key].name || `profile_${Date.now()}.jpg`,
+                        } as any);
+                    } else if (userData[key] !== null && userData[key] !== undefined) {
+                        formData.append(key, userData[key]);
+                    }
+                });
+                data = formData;
+            }
+
+            const response = await api.put(`/users/${id}`, data, {
+                headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {}
+            });
+
+            if (response.data && response.data.user) {
+                const { user, message } = response.data;
+                await AsyncStorage.setItem('user', JSON.stringify(user));
+                return { user, message: message || 'Profile updated successfully' };
+            }
+            return rejectWithValue(response.data?.message || 'Update failed');
+        } catch (error: any) {
+            const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Update failed';
             return rejectWithValue(message);
         }
     }
@@ -136,6 +197,19 @@ const authSlice = createSlice({
                 state.isAuthenticated = !!action.payload.token;
             })
             .addCase(register.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            // Update Profile
+            .addCase(updateProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateProfile.fulfilled, (state, action: any) => {
+                state.loading = false;
+                state.user = action.payload.user;
+            })
+            .addCase(updateProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });

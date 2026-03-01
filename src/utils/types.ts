@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInputProps, ViewStyle, TextStyle } from 'react-native';
+import { TextInputProps, ViewStyle, TextStyle, StyleProp } from 'react-native';
 
 //  ===== Input Interfaces   =====
 export interface InputProps extends TextInputProps {
@@ -44,6 +44,8 @@ export interface ButtonProps {
     disabled?: boolean;
     style?: ViewStyle;
     textStyle?: TextStyle;
+    startIcon?: React.ReactNode;
+    rightIcon?: React.ReactNode;
 }
 
 //  ===== Form Interfaces   =====
@@ -51,7 +53,7 @@ export interface FormFieldConfig {
     name: string;
     label: string;
     placeholder?: string;
-    type?: 'text' | 'email' | 'password' | 'number';
+    type?: 'text' | 'email' | 'password' | 'number' | 'image';
     icon?: string;
     required?: boolean;
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
@@ -62,6 +64,43 @@ export interface CardProps {
     title?: string;
     children: React.ReactNode;
     style?: ViewStyle;
+}
+
+// === Address Interfaces ===
+export interface UserAddress {
+    id: number;
+    user_id: number;
+    label: string;
+    full_name: string;
+    phone: string;
+    address_line1: string;
+    address_line2?: string;
+    landmark?: string;
+    latitude: string;
+    longitude: string;
+    city: string;
+    state: string;
+    zip_code: string;
+    country: string;
+    is_default: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface CreateAddressRequest {
+    label: string;
+    full_name: string;
+    phone: string;
+    address_line1: string;
+    address_line2?: string;
+    landmark?: string;
+    latitude: string;
+    longitude: string;
+    city: string;
+    state: string;
+    zip_code: string;
+    country: string;
+    is_default: boolean;
 }
 
 //  ===== Loading Interfaces   =====
@@ -77,6 +116,7 @@ export interface User {
     name?: string;
     email: string;
     avatar?: string;
+    profile_picture?: string;
     phone_number?: string;
     dob?: string;
     location?: string;
@@ -212,7 +252,7 @@ export const initialWishlistState: WishlistState = {
 // === ThemedSafeAreaViewProps ===
 export interface ThemedSafeAreaViewProps {
     children: React.ReactNode;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
 }
 
 // === Order ===
@@ -281,4 +321,31 @@ export interface HeaderProps {
     showBackButton?: boolean;
     onBack?: () => void;
     rightComponent?: React.ReactNode;
+}
+
+// VoiceSearchModal Interface
+export interface VoiceSearchModalProps {
+    visible: boolean;
+    onClose: () => void;
+    onSpeechResult: (text: string) => void;
+}
+
+// === QuantitySpinner Props ===
+export interface QuantitySpinnerProps {
+    value: number;
+    onChange: (num: number) => void;
+    min?: number;
+    max?: number;
+    step?: number;
+    width?: number;
+    height?: number;
+    style?: ViewStyle;
+}
+
+// === ImagePickerModal Props ===
+export interface ImagePickerModalProps {
+    visible: boolean;
+    onClose: () => void;
+    onTakePhoto: () => void;
+    onPickGallery: () => void;
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator, View } from 'react-native';
 import { ButtonProps } from '../utils/types';
 import { useTheme } from '../context';
 
@@ -11,6 +11,8 @@ const Button: React.FC<ButtonProps> = ({
     disabled = false,
     style,
     textStyle,
+    startIcon,
+    rightIcon,
 }) => {
     const { colors } = useTheme();
     const isDisabled = disabled || loading;
@@ -21,7 +23,7 @@ const Button: React.FC<ButtonProps> = ({
             case 'secondary':
                 return StyleSheet.flatten([baseStyle, { backgroundColor: colors.secondary }]);
             case 'outline':
-                return StyleSheet.flatten([styles.button, { backgroundColor: 'transparent', borderWidth: 2, borderColor: colors.primary }]);
+                return StyleSheet.flatten([styles.button, { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0 }]);
             default:
                 return StyleSheet.flatten(baseStyle);
         }
@@ -43,10 +45,10 @@ const Button: React.FC<ButtonProps> = ({
                 isDisabled && styles.disabledButton,
                 isDisabled && {
                     backgroundColor: variant === 'outline' ? 'transparent' : colors.disabled,
-                    borderColor: variant === 'outline' ? colors.disabled : undefined,
                     elevation: 0,
                     shadowOpacity: 0,
                 },
+                !title && { minWidth: 0, paddingHorizontal: 12 },
                 style
             ]}
             onPress={onPress}
@@ -56,11 +58,17 @@ const Button: React.FC<ButtonProps> = ({
             {loading ? (
                 <ActivityIndicator color={variant === 'outline' ? colors.primary : '#FFFFFF'} />
             ) : (
-                <Text style={[
-                    getTextStyle(),
-                    isDisabled && { color: variant === 'outline' ? colors.disabled : '#FFFFFF' },
-                    textStyle
-                ]}>{title}</Text>
+                <>
+                    {startIcon && <View style={[styles.startIcon, !!title && { marginRight: 8 }]}>{startIcon}</View>}
+                    {title ? (
+                        <Text style={[
+                            getTextStyle(),
+                            isDisabled && { color: variant === 'outline' ? colors.disabled : '#FFFFFF' },
+                            textStyle
+                        ]}>{title}</Text>
+                    ) : null}
+                    {rightIcon && <View style={[styles.rightIcon, !!title && { marginLeft: 8 }]}>{rightIcon}</View>}
+                </>
             )}
         </TouchableOpacity>
     );
@@ -68,6 +76,7 @@ const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
     button: {
+        flexDirection: 'row',
         paddingHorizontal: 24,
         paddingVertical: 14,
         borderRadius: 12,
@@ -85,8 +94,15 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         fontSize: 16,
+        lineHeight: 18,
         fontWeight: '500',
         fontFamily: 'Inter-Medium',
+    },
+    startIcon: {
+        // Margin applied dynamically
+    },
+    rightIcon: {
+        // Margin applied dynamically
     },
 });
 

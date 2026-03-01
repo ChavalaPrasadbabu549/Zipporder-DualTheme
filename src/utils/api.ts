@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Config from 'react-native-config';
 
 
-let BASE_URL = Config.BASE_API_URL || Config.BASE_URL || '';
+export let BASE_URL = Config.BASE_API_URL || Config.BASE_URL || '';
 
 if (BASE_URL.endsWith('/')) {
     BASE_URL = BASE_URL.slice(0, -1);
@@ -49,5 +49,12 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+export const getImageUri = (path: string | null | undefined): string | null => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    return `${BASE_URL}/${cleanPath}`;
+};
 
 export default api;

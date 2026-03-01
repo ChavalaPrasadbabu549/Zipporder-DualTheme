@@ -71,6 +71,30 @@ export const loginFields: FormFieldConfig[] = [
 
 export const registerFields: FormFieldConfig[] = [
     {
+        name: 'name',
+        label: 'Full Name',
+        placeholder: 'Enter your full name',
+        type: 'text',
+        icon: 'person',
+        required: true,
+    },
+    {
+        name: 'profile_picture',
+        label: 'Profile Picture',
+        placeholder: 'Select profile picture',
+        type: 'image',
+        icon: 'image',
+        required: true,
+    },
+    {
+        name: 'profile_picture',
+        label: 'Profile Picture',
+        placeholder: 'Select profile picture',
+        type: 'image',
+        icon: 'image',
+        required: true,
+    },
+    {
         name: 'email',
         label: 'Email Address',
         placeholder: 'Enter your email',

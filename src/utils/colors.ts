@@ -18,7 +18,7 @@ const palette = {
     offWhiteText: 'rgba(255,255,255,0.8)',
 
     // Neutrals - Dark
-    black: '#0F172A',
+    black: '#000000',
     darkBackground: '#0B1120',
     darkSurface: '#1E293B',
     darkBorder: '#334155',

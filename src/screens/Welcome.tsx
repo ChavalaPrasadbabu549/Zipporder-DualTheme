@@ -6,6 +6,7 @@ import {
     Dimensions,
     StatusBar,
     TouchableOpacity,
+    Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/navigation';
@@ -33,9 +34,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
                 <View style={styles.content}>
                     <View style={styles.logoSection}>
-                        <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
+                        {/* <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
                             <Ionicons name="cart" size={40} color="#fff" />
-                        </View>
+                        </View> */}
+                        <Image source={require('../asssets/app-logo.png')} style={styles.logoIcon} />
                         <ThemeText style={[styles.appName, { color: colors.surface }]}>ZippOrder</ThemeText>
                     </View>
 
@@ -50,6 +52,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                         <Button
                             title="Get Started"
                             onPress={() => navigation.navigate('Login')}
+                            rightIcon={<Ionicons name="arrow-forward" size={20} color={colors.surface} />}
                         />
 
                         <View style={styles.footer}>
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     appName: {
         fontSize: 36,
         fontWeight: '900',
-        letterSpacing: 2,
+        fontFamily: 'Inter-Bold',
     },
     textSection: {
         marginTop: 50,
@@ -111,17 +114,19 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 42,
         fontWeight: '900',
+        fontFamily: 'Inter-Bold',
         lineHeight: 52,
         marginBottom: 15,
     },
     subtitle: {
         fontSize: 18,
         lineHeight: 26,
+        fontWeight: '500',
+        fontFamily: 'Inter-Medium',
     },
     buttonSection: {
         width: '100%',
     },
-
 
     footer: {
         flexDirection: 'row',
@@ -130,10 +135,15 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 16,
+        lineHeight: 24,
+        fontWeight: '500',
+        fontFamily: 'Inter-Medium',
     },
     footerLink: {
         fontSize: 16,
+        lineHeight: 24,
         fontWeight: '800',
+        fontFamily: 'Inter-Bold',
     },
 });
 

@@ -11,3 +11,6 @@ export { BannerSection } from './BannerSection';
 export { OfferSection } from './OfferSection';
 export { SegmentedTabs } from './SegmentedTabs';
 export { default as Header } from './Header';
+export { default as VoiceSearchModal } from './VoiceSearchModal';
+export { default as QuantitySpinner } from './QuantitySpinner';
+export { default as ImagePickerModal } from './ImagePickerModal';

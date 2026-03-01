@@ -18,11 +18,10 @@ export const addToCart = createAsyncThunk(
     'cart/addToCart',
     async ({ productId, quantity }: { productId: number; quantity: number }, { rejectWithValue, dispatch }) => {
         try {
-            const response = await api.post('/cart/update', {
+            const response = await api.put('/cart/update', {
                 product_id: productId,
                 quantity: quantity
             });
-            // After updating, refresh the cart to get the latest state
             dispatch(fetchCart());
             return response.data;
         } catch (error: any) {
@@ -38,7 +37,6 @@ export const removeFromCart = createAsyncThunk(
             const response = await api.delete('/cart/remove', {
                 data: { product_id: productId }
             });
-            // After removing, refresh the cart
             dispatch(fetchCart());
             return response.data;
         } catch (error: any) {
@@ -64,7 +62,7 @@ const cartSlice = createSlice({
             })
             .addCase(fetchCart.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = action.payload?.userCart?.product_ids || [];
+                state.items = action.payload?.userCart?.items || [];
             })
             .addCase(fetchCart.rejected, (state, action) => {
                 state.loading = false;

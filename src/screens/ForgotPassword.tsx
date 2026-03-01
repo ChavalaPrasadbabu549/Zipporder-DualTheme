@@ -10,6 +10,7 @@ import {
     Dimensions,
     StatusBar,
     ToastAndroid,
+    Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/navigation';
@@ -91,9 +92,10 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
                         <View style={styles.headerContent}>
                             <View style={styles.appLogoContainer}>
-                                <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
+                                {/* <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
                                     <Ionicons name="key" size={30} color="#fff" />
-                                </View>
+                                </View> */}
+                                <Image source={require('../asssets/app-logo.png')} style={styles.logoIcon} />
                                 <ThemeText style={[styles.appName, { color: colors.surface }]}>ZippOrder</ThemeText>
                             </View>
 
@@ -213,7 +215,9 @@ const styles = StyleSheet.create({
     },
     appName: {
         fontSize: 24,
+        lineHeight: 24,
         fontWeight: 'bold',
+        fontFamily: 'Inter-Bold',
     },
     welcomeContainer: {
         alignItems: 'center',
@@ -221,10 +225,13 @@ const styles = StyleSheet.create({
     welcomeTitle: {
         fontSize: 26,
         fontWeight: 'bold',
+        fontFamily: 'Inter-Bold',
         marginBottom: 8,
     },
     welcomeSubtitle: {
         fontSize: 16,
+        fontWeight: '600',
+        fontFamily: 'Inter-Bold',
         textAlign: 'center',
     },
     formCard: {
@@ -251,7 +258,8 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     resetButton: {
-        marginBottom: 15,
+        marginVertical: 20,
+        // marginBottom: 15,
     },
     dividerFull: {
         height: 1,
@@ -290,10 +298,13 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     footerText: {
-        fontSize: 15,
+        fontSize: 14,
+        fontWeight: '600',
+        fontFamily: 'Inter-Bold',
     },
     footerLink: {
-        fontSize: 15,
+        fontSize: 14,
+        fontFamily: 'Inter-Bold',
         fontWeight: 'bold',
     },
 });

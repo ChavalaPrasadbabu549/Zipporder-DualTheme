@@ -4,7 +4,6 @@ import {
     StyleSheet,
     Image,
     TouchableOpacity,
-    Dimensions
 } from 'react-native';
 import { ProductCardProps } from '../utils/types';
 import { formatImageUrl } from '../utils';

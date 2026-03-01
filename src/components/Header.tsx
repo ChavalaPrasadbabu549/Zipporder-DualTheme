@@ -35,8 +35,8 @@ const Header: React.FC<HeaderProps> = ({
                 )}
             </View>
             <View style={styles.titleContainer}>
-                <ThemeText style={styles.headerTitle}>{title}</ThemeText>
-                {subtitle && <ThemeText style={styles.subtitleText}>{subtitle}</ThemeText>}
+                <ThemeText style={[styles.headerTitle, { color: colors.text }]}>{title}</ThemeText>
+                {subtitle && <ThemeText style={[styles.subtitleText, { color: colors.text }]}>{subtitle}</ThemeText>}
             </View>
             <View style={styles.rightContainer}>
                 {rightComponent ? rightComponent : <View style={{ width: 32 }} />}

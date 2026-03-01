@@ -159,7 +159,7 @@ const CategoryDetailScreen: React.FC<any> = ({ route }) => {
     const categoryImage = resolvedCategory ? formatImageUrl(resolvedCategory.image) : null;
 
     return (
-        <ThemedSafeAreaView style={styles.container}>
+        <ThemedSafeAreaView style={[styles.container, { backgroundColor: colors.surface }]}>
             <Header title={capitalize(categoryName || 'Category')} />
 
             <ScrollView

@@ -12,7 +12,9 @@ import {
     ActivityIndicator,
     Alert,
     SafeAreaView,
-    StatusBar
+    StatusBar,
+    Platform,
+    ToastAndroid
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
@@ -22,7 +24,6 @@ import { toggleWishlist } from '../store/slices/wishlistSlice';
 import { ThemeText, ThemedSafeAreaView } from '../components';
 import { useTheme } from '../context';
 import { formatImageUrl } from '../utils';
-import InputSpinner from 'react-native-input-spinner';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');
@@ -35,7 +36,6 @@ export const ProductDetail: React.FC<Props> = ({ route, navigation }) => {
     const { user } = useAppSelector((state) => state.auth);
     const { loading: cartLoading } = useAppSelector((state) => state.cart);
     const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
-
     const [quantity, setQuantity] = useState(1);
     const [selectedSize, setSelectedSize] = useState('500g');
     const [isDetailsOpen, setIsDetailsOpen] = useState(true);
@@ -55,7 +55,7 @@ export const ProductDetail: React.FC<Props> = ({ route, navigation }) => {
     }
 
     const imageUrl = formatImageUrl(product.images);
-    const images = imageUrl ? [imageUrl, imageUrl, imageUrl, imageUrl] : []; // Fallback for demo as we have single string in DB
+    const images = imageUrl ? [imageUrl, imageUrl, imageUrl, imageUrl] : [];
     const isInWishlist = wishlistItems.some(i => i.id === product.id);
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -70,17 +70,20 @@ export const ProductDetail: React.FC<Props> = ({ route, navigation }) => {
             Alert.alert('Login Required', 'Please login to add items to cart');
             return;
         }
-
         dispatch(addToCart({
             productId: product.id,
             quantity: quantity
         }))
             .unwrap()
-            .then(() => {
-                Alert.alert('Success', 'Product added to cart!');
+            .then((res) => {
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(res.message || 'Item added to cart', ToastAndroid.SHORT);
+                }
             })
             .catch((err) => {
-                Alert.alert('Error', err || 'Failed to add to cart');
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(err.message || 'Failed to add item', ToastAndroid.SHORT);
+                }
             });
     };
 

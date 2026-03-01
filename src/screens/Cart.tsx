@@ -8,20 +8,19 @@ import {
     ActivityIndicator,
     Alert,
     RefreshControl,
-    ScrollView
+    ScrollView,
+    Platform,
+    ToastAndroid
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { fetchCart, addToCart, removeFromCart } from '../store/slices/cartSlice';
-import { Header, ThemeText, ThemedSafeAreaView } from '../components';
+import { Header, ThemeText, ThemedSafeAreaView, QuantitySpinner } from '../components';
 import { useTheme } from '../context';
 import { formatImageUrl } from '../utils';
-import InputSpinner from 'react-native-input-spinner';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
-import api from '../utils/api';
-
 
 const CartScreen: React.FC = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -30,7 +29,6 @@ const CartScreen: React.FC = () => {
     const { user } = useAppSelector((state) => state.auth);
     const { products } = useAppSelector((state) => state.catalog);
     const { colors } = useTheme();
-    const [cartData, setCartData] = useState([]);
 
     const enrichedItems = React.useMemo(() => {
         if (!Array.isArray(items)) return [];
@@ -42,8 +40,6 @@ const CartScreen: React.FC = () => {
             };
         });
     }, [items, products]);
-
-
 
     const onRefresh = React.useCallback(() => {
         if (user) {
@@ -69,16 +65,30 @@ const CartScreen: React.FC = () => {
             quantity
         }))
             .unwrap()
+            .then((res) => {
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(res.message || 'Item added to cart', ToastAndroid.SHORT);
+                }
+            })
             .catch((err) => {
-                Alert.alert('Update Failed', err || 'Failed to update quantity');
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(err.message || 'Failed to add item', ToastAndroid.SHORT);
+                }
             });
     };
 
     const handleRemoveItem = (productId: number) => {
         dispatch(removeFromCart(productId))
             .unwrap()
+            .then((res) => {
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(res.message || 'Item removed from cart', ToastAndroid.SHORT);
+                }
+            })
             .catch((err) => {
-                Alert.alert('Remove Failed', err || 'Failed to remove item');
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(err.message || 'Failed to remove item', ToastAndroid.SHORT);
+                }
             });
     };
 
@@ -102,45 +112,11 @@ const CartScreen: React.FC = () => {
                     <ThemeText style={styles.itemName}>{item.product.name}</ThemeText>
                     <ThemeText style={styles.itemPrice}>₹{item.product.discount_price}</ThemeText>
                     <View style={styles.quantityContainer}>
-                        <InputSpinner
-                            max={10}
-                            min={1}
-                            step={1}
-                            colorMax={colors.error}
-                            colorMin={colors.primary}
+                        <QuantitySpinner
                             value={item.quantity}
                             onChange={(num: number) => handleUpdateQuantity(item.product.id, num)}
-                            skin="round"
-                            buttonStyle={{ backgroundColor: colors.primary, width: 20, height: 20 }}
-                            height={20}
-                            width={90}
-                            fontSize={12}
-                            buttonFontSize={12}
-                            // skin="square"
-                            buttonTextColor="#fff"
-                            style={{
-                                borderWidth: 1,
-                                // borderColor: isDark ? '#FFFFFF1A' : '#D9D9D9',
-                                borderRadius: 6,
-                                backgroundColor: 'transparent',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                boxShadow: 'none',
-                            }}
-                            inputStyle={{
-                                height: 20,
-                                paddingVertical: 0,
-                                textAlign: 'center',
-                                textAlignVertical: 'center',
-                                lineHeight: 20,
-                                color: '#000',
-                            } as any}
-                        // buttonStyle={{
-                        //     width: 30,
-                        //     backgroundColor: 'transparent',
-                        //     justifyContent: 'center',
-                        //     alignItems: 'center',
-                        // }}
+                            height={30}
+                            width={100}
                         />
                     </View>
                 </View>
@@ -161,21 +137,6 @@ const CartScreen: React.FC = () => {
             </ThemedSafeAreaView>
         );
     }
-
-
-    const mycartdetails = async () => {
-        try {
-            const response = await api.get('https://backend-dev.zipporder.com/cart/get');
-            console.log('🛒 CART SCREEN DATA:', response.data.userCart.items);
-            setCartData(response.data.userCart.items);
-        } catch (error) {
-            console.error('Error fetching cart details:', error);
-        }
-    }
-
-    useEffect(() => {
-        mycartdetails();
-    }, []);
 
     return (
         <ThemedSafeAreaView style={styles.container}>

@@ -4,7 +4,7 @@ import Config from "react-native-config";
 export const formatImageUrl = (imageStr: string): string | undefined => {
     if (!imageStr) return undefined;
 
-    const baseUrl = Config.IMAGE_BASE_URL || '';
+    const baseUrl = Config.IMAGE_BASE_URL || Config.BASE_API_URL || Config.BASE_URL || '';
 
     let path = imageStr;
 
@@ -14,8 +14,12 @@ export const formatImageUrl = (imageStr: string): string | undefined => {
 
     path = path.replace(/^"|"$/g, '');
 
-    const fullUrl = path.startsWith('http') ? path : `${baseUrl}${path}`;
-    return fullUrl;
+    if (path.startsWith('http')) return path;
+
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+    return `${cleanBaseUrl}${cleanPath}`;
 };
 
 // Format currency

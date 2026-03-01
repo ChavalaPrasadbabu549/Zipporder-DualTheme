@@ -24,4 +24,5 @@ export type RootStackParamList = {
     Wishlist: undefined;
     Orders: undefined;
     TrackOrder: { orderId: string };
+    SelectLocation: undefined;
 };

@@ -31,10 +31,11 @@ src/
 ## ✨ Features
 
 - 🌓 **Dual Theme System**: Support for Light and Dark modes with automatic Status Bar adjustment.
-- 🔐 **Persistent Authentication**: Redux Toolkit integrated with `AsyncStorage` to keep users logged in across app restarts.
-- 🌐 **Axios API Layer**: Centralized API utility with logging and automatic `Bearer` token injection.
-- 📱 **Native Performance**: Uses `native-stack` for fluid native screen transitions.
-- 👁️ **Password Visibility**: Built-in toggle for secure text entry in the `Input` component.
+- 🔐 **Persistent Authentication**: Redux Toolkit with `AsyncStorage` to keep users logged in.
+- 📸 **Profile Image Upload**: Integrated `react-native-image-picker` with smart `FormData` handling.
+- 🎤 **Voice Search**: Real-time voice searching using `@react-native-voice/voice`.
+- 🛍️ **Product Catalog**: Dynamic categories and products with price formatting.
+- ✨ **Premium Design**: Modern, glassmorphism-inspired UI with smooth transitions.
 - ✅ **Form Validation**: Robust client-side validation logic for reliable user data.
 
 ## 🚀 Getting Started
@@ -69,11 +70,21 @@ npm run android
 
 ### Main Dependencies
 - `@react-navigation/native-stack`: High-performance native stack navigation.
-- `@reduxjs/toolkit`: Modern state management for auth and app state.
-- `@react-native-async-storage/async-storage`: Used for persisting JWT tokens and user data. 
-- `react-native-config`: Manages environment variables (e.g., `BASE_API_URL`).
-- `axios`: Handles all HTTP communication with the backend.
-- `react-native-vector-icons`: Ionicons used for premium UI elements.
+- `@reduxjs/toolkit`: Modern state management for auth, products, and cart.
+- `react-native-image-picker`: Handles camera and gallery for profile pictures.
+- `@react-native-voice/voice`: Powers the voice-to-text search feature.
+- `react-native-config`: Manages environment variables securely.
+- `axios`: Centralized networking with smart interceptors.
+- `react-native-vector-icons`: Ionicons for high-quality UI elements.
+
+## 🏗 Build Release (Android APK)
+
+To generate a production-ready Release APK:
+
+1. **Clean**: `cd android && gradlew clean && cd ..`
+2. **Build**: `cd android && gradlew assembleRelease && cd ..`
+3. **Location**: `android/app/build/outputs/apk/release/app-release.apk`
+
 
 ## 📜 Technical Setup & Fixes
 

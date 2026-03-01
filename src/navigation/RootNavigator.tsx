@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthNavigator } from './AuthNavigator';
 import { TabNavigator } from './TabNavigator';
-import { AllCategories, ProductDetail, Cart, Profile, Wishlist, Orders, TrackOrder } from '../screens';
+import { AllCategories, ProductDetail, Cart, Profile, Wishlist, Orders, TrackOrder, SelectLocation } from '../screens';
 import { RootStackParamList } from './navigation';
 import { useAppSelector, useAppDispatch } from '../hooks';
 import { initializeAuth } from '../store/slices/authSlice';
@@ -34,6 +34,7 @@ export const RootNavigator: React.FC = () => {
                     <Stack.Screen name="Wishlist" component={Wishlist} />
                     <Stack.Screen name="Orders" component={Orders} />
                     <Stack.Screen name="TrackOrder" component={TrackOrder} />
+                    <Stack.Screen name="SelectLocation" component={SelectLocation} />
                 </>
             ) : (
                 <Stack.Screen name="Auth" component={AuthNavigator} />

@@ -6,24 +6,84 @@ import {
     TouchableOpacity,
     Image,
     Switch,
-    Dimensions
 } from 'react-native';
 import { useAppSelector, useAppDispatch } from '../hooks';
 import { logout } from '../store/slices/authSlice';
-import { ThemeText, ThemedSafeAreaView } from '../components';
 import { useTheme } from '../context';
+import { Platform, ToastAndroid } from 'react-native';
+import { Asset } from 'react-native-image-picker';
+import { takePhotoAction, pickFromGalleryAction } from '../utils/imagePicker';
+import { formatImageUrl } from '../utils/helpers';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
+import { Input, Button, ImagePickerModal, ThemeText, ThemedSafeAreaView } from '../components';
+import { updateProfile } from '../store/slices/authSlice';
 
-const { width } = Dimensions.get('window');
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 export const Profile: React.FC<Props> = ({ navigation }) => {
-    const { user } = useAppSelector((state) => state.auth);
+    const { user, loading } = useAppSelector((state) => state.auth);
     const dispatch = useAppDispatch();
     const { colors, isDark, toggleTheme } = useTheme();
     const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [profileImage, setProfileImage] = useState<Asset | null>(null);
+    const [showPicker, setShowPicker] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValues, setEditValues] = useState({
+        name: user?.name || '',
+        email: user?.email || '',
+        phone_number: user?.phone_number || '',
+        dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+        location: user?.location || '',
+    });
+
+    const handleFieldChange = (name: string, value: string) => {
+        setEditValues(prev => ({ ...prev, [name]: value }));
+    };
+
+    const takePhoto = async () => {
+        setShowPicker(false);
+        await takePhotoAction((asset) => {
+            setProfileImage(asset);
+        });
+    };
+
+    const pickFromGallery = async () => {
+        setShowPicker(false);
+        await pickFromGalleryAction((asset) => {
+            setProfileImage(asset);
+        });
+    };
+
+    const handleSave = async () => {
+        if (!user?.id) return;
+
+        const userData = {
+            ...editValues,
+            profile_picture: profileImage ? {
+                uri: profileImage.uri,
+                type: profileImage.type,
+                name: (profileImage.fileName || `profile_${Date.now()}.jpg`).replace(/\s+/g, '_'),
+            } : null
+        };
+
+        dispatch(updateProfile({ id: user.id, userData }))
+            .unwrap()
+            .then((data) => {
+                setIsEditing(false);
+                setProfileImage(null);
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(data.message || 'Profile updated', ToastAndroid.SHORT);
+                }
+            })
+            .catch((error) => {
+                if (Platform.OS === 'android') {
+                    ToastAndroid.show(error || 'Update Failed', ToastAndroid.LONG);
+                }
+            });
+    };
 
     const handleLogout = () => {
         dispatch(logout());
@@ -73,6 +133,7 @@ export const Profile: React.FC<Props> = ({ navigation }) => {
         </TouchableOpacity>
     );
 
+
     return (
         <ThemedSafeAreaView style={styles.container}>
             {/* Header */}
@@ -94,27 +155,114 @@ export const Profile: React.FC<Props> = ({ navigation }) => {
                 <View style={styles.profileSection}>
                     <View style={styles.avatarWrapper}>
                         <View style={[styles.avatarContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                            {user?.avatar ? (
-                                <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
+                            {profileImage ? (
+                                <Image source={{ uri: profileImage.uri }} style={styles.avatarImage} />
+                            ) : user?.profile_picture ? (
+                                <Image
+                                    source={{ uri: formatImageUrl(user.profile_picture) }}
+                                    style={styles.avatarImage}
+                                />
                             ) : (
                                 <ThemeText style={[styles.avatarPlaceholder, { color: colors.primary }]}>
                                     {user?.name?.charAt(0).toUpperCase() || 'U'}
                                 </ThemeText>
                             )}
                         </View>
-                        <TouchableOpacity style={[styles.cameraBadge, { backgroundColor: colors.primary }]}>
-                            <Ionicons name="camera" size={14} color="#FFF" />
-                        </TouchableOpacity>
+                        {(isEditing || !user?.profile_picture) && (
+                            <TouchableOpacity
+                                style={[styles.cameraBadge, { backgroundColor: colors.primary }]}
+                                onPress={() => setShowPicker(true)}
+                            >
+                                <Ionicons name="camera" size={14} color="#FFF" />
+                            </TouchableOpacity>
+                        )}
                     </View>
 
-                    <ThemeText style={styles.userName}>{user?.name || user?.phone_number || 'Guest User'}</ThemeText>
-                    <ThemeText style={[styles.userEmail, { color: colors.textSecondary }]}>
-                        {user?.email || 'No email provided'}
-                    </ThemeText>
+                    {isEditing ? (
+                        <View style={styles.editForm}>
+                            <Input
+                                label="Full Name"
+                                placeholder="Enter your name"
+                                value={editValues.name}
+                                onChangeText={(val) => handleFieldChange('name', val)}
+                                containerStyle={styles.editInput}
+                                leftIcon={<Ionicons name="person" size={20} color={colors.textSecondary} />}
+                            />
+                            <Input
+                                label="Email Address"
+                                placeholder="Enter your email"
+                                value={editValues.email}
+                                onChangeText={(val) => handleFieldChange('email', val)}
+                                keyboardType="email-address"
+                                containerStyle={styles.editInput}
+                                leftIcon={<Ionicons name="mail" size={20} color={colors.textSecondary} />}
+                            />
+                            <Input
+                                label="Phone Number"
+                                placeholder="Enter phone number"
+                                value={editValues.phone_number}
+                                onChangeText={(val) => handleFieldChange('phone_number', val)}
+                                keyboardType="phone-pad"
+                                containerStyle={styles.editInput}
+                                leftIcon={<Ionicons name="call" size={20} color={colors.textSecondary} />}
+                            />
+                            <Input
+                                label="Date of Birth"
+                                placeholder="YYYY-MM-DD"
+                                value={editValues.dob}
+                                onChangeText={(val) => handleFieldChange('dob', val)}
+                                containerStyle={styles.editInput}
+                                leftIcon={<Ionicons name="calendar" size={20} color={colors.textSecondary} />}
+                            />
+                            <Input
+                                label="Location"
+                                placeholder="Enter location"
+                                value={editValues.location}
+                                onChangeText={(val) => handleFieldChange('location', val)}
+                                containerStyle={styles.editInput}
+                                leftIcon={<Ionicons name="location" size={20} color={colors.textSecondary} />}
+                            />
+                            <View style={styles.editActions}>
+                                <Button
+                                    title="Cancel"
+                                    onPress={() => setIsEditing(false)}
+                                    variant="outline"
+                                    style={styles.cancelEditBtn}
+                                    startIcon={<Ionicons name="close" size={20} color={colors.surface} />}
+                                />
+                                <Button
+                                    title={loading ? "Saving..." : "Save Changes"}
+                                    onPress={handleSave}
+                                    disabled={loading}
+                                    style={styles.saveEditBtn}
+                                    startIcon={<Ionicons name="save" size={20} color={colors.surface} />}
+                                />
+                            </View>
+                        </View>
+                    ) : (
+                        <>
+                            <ThemeText style={styles.userName}>{user?.name || user?.phone_number || 'Guest User'}</ThemeText>
+                            <ThemeText style={[styles.userEmail, { color: colors.textSecondary }]}>
+                                {user?.email || 'No email provided'}
+                            </ThemeText>
 
-                    <TouchableOpacity style={[styles.editProfileButton, { borderColor: colors.border }]}>
-                        <ThemeText style={[styles.editProfileText, { color: colors.textSecondary }]}>View & Edit Profile</ThemeText>
-                    </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.editProfileButton, { borderColor: colors.border }]}
+                                onPress={() => {
+                                    setEditValues({
+                                        name: user?.name || '',
+                                        email: user?.email || '',
+                                        phone_number: user?.phone_number || '',
+                                        dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+                                        location: user?.location || '',
+                                    });
+                                    setIsEditing(true);
+                                }}
+                            >
+                                <ThemeText style={[styles.editProfileText, { color: colors.textSecondary }]}>View & Edit Profile</ThemeText>
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </View>
 
                 {/* Menu Tiles */}
@@ -183,6 +331,14 @@ export const Profile: React.FC<Props> = ({ navigation }) => {
                     />
                 </View>
             </ScrollView>
+
+            {/* Image Picker Modal */}
+            <ImagePickerModal
+                visible={showPicker}
+                onClose={() => setShowPicker(false)}
+                onTakePhoto={takePhoto}
+                onPickGallery={pickFromGallery}
+            />
         </ThemedSafeAreaView>
     );
 };
@@ -309,7 +465,27 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         marginRight: 10,
-    }
+    },
+    saveEditBtn: {
+        flex: 1,
+    },
+    editForm: {
+        width: '100%',
+        paddingHorizontal: 20,
+        marginTop: 10,
+    },
+    editInput: {
+        marginBottom: 12,
+    },
+    editActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+        gap: 10,
+    },
+    cancelEditBtn: {
+        flex: 1,
+    },
 });
 
 export default Profile;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, } from 'react';
 import {
     View,
     StyleSheet,
@@ -10,6 +10,7 @@ import {
     ImageBackground,
     Dimensions,
     StatusBar,
+    Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/navigation';
@@ -88,9 +89,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         <View style={styles.overlay} />
                         <View style={styles.headerContent}>
                             <View style={styles.appLogoContainer}>
-                                <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
-                                    <Ionicons name="cart" size={30} color="#fff" />
-                                </View>
+                                {/* <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
+                                    <Ionicons name="cart" size={30} color={colors.surface} />
+                                </View> */}
+                                <Image source={require('../asssets/app-logo.png')} style={styles.logoIcon} />
                                 <ThemeText style={[styles.appName, { color: colors.surface }]}>ZippOrder</ThemeText>
                             </View>
 
@@ -208,19 +210,25 @@ const styles = StyleSheet.create({
     },
     appName: {
         fontSize: 24,
+        lineHeight: 26,
         fontWeight: 'bold',
+        fontFamily: 'Inter-Bold',
     },
     welcomeContainer: {
         alignItems: 'center',
     },
     welcomeTitle: {
         fontSize: 26,
+        lineHeight: 32,
         fontWeight: 'bold',
         marginBottom: 8,
+        fontFamily: 'Inter-Bold',
     },
     welcomeSubtitle: {
         fontSize: 16,
+        lineHeight: 24,
         textAlign: 'center',
+        fontFamily: 'Inter-Regular',
     },
     formCard: {
         flex: 1,
@@ -254,18 +262,25 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     forgotPasswordText: {
-        fontSize: 14,
+        fontSize: 13,
+        lineHeight: 20,
+        fontFamily: 'Inter-Medium',
         fontWeight: '600',
     },
     loginButton: {
         marginBottom: 24,
     },
     footerText: {
-        fontSize: 15,
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '600',
+        fontFamily: 'Inter-Medium',
     },
     footerLink: {
-        fontSize: 15,
-        fontWeight: 'bold',
+        fontSize: 14,
+        lineHeight: 20,
+        fontWeight: '700',
+        fontFamily: 'Inter-SemiBold',
     },
     dividerFull: {
         height: 1,
@@ -293,7 +308,9 @@ const styles = StyleSheet.create({
     },
     featureText: {
         fontSize: 12,
+        lineHeight: 16,
         fontWeight: '600',
+        fontFamily: 'Inter-Medium',
         textAlign: 'center',
     },
     footer: {
